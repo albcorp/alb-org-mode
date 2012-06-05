@@ -44,6 +44,9 @@
 
 (eval-after-load 'org
  '(progn
+    ;; Require org-capture templates
+    (require 'org-capture)
+
     ;; Require functions to customise behavior
     (require 'alb-org-behavior)
 
