@@ -38,6 +38,12 @@
 
 ;;; *** IMMEDIATE CONFIGURATION ***********************************************
 
+;;;
+;;; Auto Modes
+;;;
+
+(setq auto-mode-alist
+      (cons '("\\.org$" . org-mode) auto-mode-alist))
 
 
 ;;; *** DEFERRED CONFIGURATION ************************************************
