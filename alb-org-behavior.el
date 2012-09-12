@@ -304,7 +304,7 @@ with the key =e= at point."
 (defun alb-org-insert-gmail-link-item ()
   "Insert link describing a gmail message into current headline
 
-Calls `alb-org-insert-gmail-link-item'."
+Calls `alb-org-insert-gmail-link-text'."
   (interactive)
   (save-excursion
     (alb-org-end)
