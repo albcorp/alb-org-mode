@@ -350,7 +350,7 @@ and elapsed time easier to follow in column view.
   (cond ((string= column-title "Project")
          (if (string-match alb-re-org-heading value)
              (concat (match-string 1 value) " " (match-string 4 value))))
-        ((string= column-title "Tag")
+        ((string= column-title "Label")
          (if (string-match alb-re-org-project-filename value)
              (match-string 3 value)))
         ((string= column-title "Media")
