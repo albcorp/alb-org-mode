@@ -214,6 +214,7 @@
     (define-key org-mode-map [(meta right)]'org-indent-item-tree)
     (define-key org-mode-map "\C-c-" 'org-cycle-list-bullet)
     (define-key org-mode-map "\C-cx" 'alb-org-toggle-checkbox)
+    (define-key org-mode-map "\C-c'" 'org-edit-special)
 
     ;; Reset default speed keys
     (setq org-speed-commands-default
