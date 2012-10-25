@@ -43,22 +43,36 @@
 (defconst alb-re-org-date
   (concat "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}"
           " \\(?:Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\)"
-          "\\(?: [0-9]\\{2\\}:[0-9]\\{2\\}\\)?")
-  "Regexp matching an Org-Mode timestamp. It consumes 0
-  subexpression.")
+          "\\(?: [0-9]\\{2\\}:[0-9]\\{2\\}\\)?"
+          "\\(?: \\(\+\\|\+\+\\|\.\+\\)[0-9]+[hdwmy]\\)?"
+          "\\(?: -[0-9]+[hdwmy]\\)?"
+          )
+  "Regexp matching an Org-Mode timestamp including repeaters.  It
+consumes 0 subexpression.")
+
+
+(defconst alb-re-org-todo
+  "\\(TODO\\|NEXT\\|WAIT\\|DUTY\\|HOLD\\|DONE\\|STOP\\)"
+  "Regexp matching an Org-Mode todo state. It consumes 1
+subexpression.")
+
+
+(defconst alb-re-org-priority
+  "\\(\\[#[A-C]\\]\\)"
+  "Regexp matching an Org-Mode priority. It consumes 1
+subexpression.")
 
 
 (defconst alb-re-org-heading
   (concat "^"
           "\\(\\*+\\)? *"
-          "\\(TODO\\|NEXT\\|WAIT\\|DONE\\|STOP\\|DUTY\\)? *"
-          "\\(\\[#[A-C]\\]\\)? *"
+          alb-re-org-todo "? *"
+          alb-re-org-priority "? *"
           "\\(.*?\\) *"
           "\\(:[a-z:@_]+:\\)? *"
           "$")
-  "Regexp matching an Org-Mode heading.  The match excludes the
-newline terminating the headline. It consumes 5 subexpressions
-as follows.
+  "Regexp matching an Org-Mode heading with anchoring to the
+start and end of line.  It consumes 5 subexpressions as follows.
 
 1. (optional) Asterisks
 2. (optional) TODO keyword
@@ -98,25 +112,19 @@ ID.")
 
 (defface alb-org-priority-a
   '((t :foreground "white" :weight bold))
-  "Face used for DUTY keyword."
+  "Face used for priority A keyword."
   :group 'org-faces)
 
 
 (defface alb-org-priority-b
   '((t :foreground "grey80" :weight bold))
-  "Face used for DUTY keyword."
+  "Face used for priority B keyword."
   :group 'org-faces)
 
 
 (defface alb-org-priority-c
   '((t :foreground "grey60" :weight bold))
-  "Face used for DUTY keyword."
-  :group 'org-faces)
-
-
-(defface alb-org-keyword-duty
-  '((t :foreground "CornflowerBlue" :weight bold))
-  "Face used for DUTY keyword."
+  "Face used for priority C keyword."
   :group 'org-faces)
 
 
@@ -138,6 +146,18 @@ ID.")
   :group 'org-faces)
 
 
+(defface alb-org-keyword-duty
+  '((t :foreground "CornflowerBlue" :weight bold))
+  "Face used for DUTY keyword."
+  :group 'org-faces)
+
+
+(defface alb-org-keyword-hold
+  '((t :foreground "LightGoldenrod" :weight bold))
+  "Face used for HOLD keyword."
+  :group 'org-faces)
+
+
 (defface alb-org-keyword-done
   '((t :foreground "IndianRed" :weight bold))
   "Face used for DONE keyword."
@@ -152,6 +172,49 @@ ID.")
 
 
 ;;; *** FUNCTION DEFINITIONS **************************************************
+
+
+(defun alb-org-capture-location-new-project ()
+  "Interactively construct project label and place point inside the file
+
+This function customises Org-Mode.  See `org-capture-templates`."
+  (let* ((proj-role (read-string "Project role: "))
+         (proj-subject (read-string "Project subject: "))
+         (proj-responsibility (read-string "Project responsibility: "))
+         (bname (concat "prj-" proj-role "-" proj-subject
+                        "-" proj-responsibility))
+         (fname (concat default-directory bname ".org")))
+    (find-file fname)
+    (goto-char (point-min))))
+
+
+(defun alb-org-whitespace-cleanup ()
+  "Clean buffer of Org-Mode specific whitespace issues
+
+Clean buffer content.  Return nil, so that the function can be
+safely added to the `write-contents-functions` hook."
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "^\n\\{2,\\}" nil t)
+      (replace-match "\n" nil nil))
+    (goto-char (point-min))
+    (while (re-search-forward (concat "\\([^[:space:]]\\)\n\\("
+                                      org-outline-regexp "\\)")
+                              nil t)
+      (replace-match "\\1\n\n\\2" nil nil))
+    (goto-char (point-min))
+    (while (re-search-forward org-outline-regexp-bol nil t)
+      (org-set-tags nil t)
+      (end-of-line 1))
+    nil))
+
+
+(defun alb-add-org-whitespace-cleanup ()
+  "Add buffer local hook to clean buffer of Org-Mode specific whitespace issues
+
+Add `alb-org-whitespace-cleanup` to the buffer local
+`write-contents-functions`."
+  (add-hook 'write-contents-functions 'alb-org-whitespace-cleanup))
 
 
 (defun alb-org-agenda-cmp (a b)
@@ -364,9 +427,11 @@ and elapsed time easier to follow in column view.
          (cond ((string= value "TODO") "t")
                ((string= value "NEXT") "n")
                ((string= value "WAIT") "w")
+               ((string= value "DUTY") "u")
+               ((string= value "HOLD") "h")
                ((string= value "DONE") "D")
                ((string= value "STOP") "S")
-               ((string= value "DUTY") "U")))))
+               ))))
 
 
 

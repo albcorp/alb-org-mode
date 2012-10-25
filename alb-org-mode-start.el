@@ -62,6 +62,9 @@
 (add-hook
  'org-mode-hook
  '(lambda ()
+    ;; Fix the formatting on write
+    (alb-add-org-whitespace-cleanup)
+
     ;; Remove existing OrgMode key-bindings
     (define-key org-mode-map "\C-c\C-x" (make-sparse-keymap))
     (define-key org-mode-map "\C-i" nil)
