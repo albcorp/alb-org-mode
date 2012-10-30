@@ -232,7 +232,7 @@ This function customises Org-Mode."
 
 
 (defun alb-org-widen ()
-  "Widen to the while buffer and centre the headline"
+  "Widen to the whole buffer and centre the headline"
   (interactive)
   (widen)
   (recenter))
@@ -287,33 +287,30 @@ line, and places the cursor at the end of the second blank line."
              (indent-according-to-mode)))))
 
 
-(defun alb-org-insert-heading-after-current ()
-  "Insert new heading of the same level and type as the current heading
-
-Inserts a new heading after the current heading. Looks up the
-`org-capture' template associated with the key =t=. If the
-current heading has a todo state and is at the same level as the
-template, inserts the expansion of this template. Otherwise,
-inserts a blank heading of the same level."
+(defun alb-org-insert-heading-before ()
+  "Move to the containing heading and insert a matching heading"
   (interactive)
-  (if (org-before-first-heading-p)
-      (outline-next-heading)
-    (outline-back-to-heading))
-  (looking-at alb-re-org-heading)
-  (let* ((curr-star (match-string-no-properties 1))
-         (curr-todo (match-string-no-properties 2))
-         (tmpl (nth 4 (assoc "t" org-capture-templates)))
-         (tmpl-star (and tmpl
-                         (string-match "^\\(\\*+\\) " tmpl)
-                         (match-string-no-properties 1 tmpl))))
-    (if (and curr-star curr-todo (string= curr-star tmpl-star))
-        (progn (insert (org-capture-fill-template tmpl))
-               (outline-backward-same-level 1)
-               (org-move-subtree-down)
-               (alb-org-end))
-      (progn (org-insert-heading)
-             (org-move-subtree-down)
-             (end-of-line 1)))))
+  (let ((stars (progn (if (org-before-first-heading-p)
+                          (outline-next-heading)
+                        (outline-back-to-heading))
+                      (looking-at outline-regexp)
+                      (match-string-no-properties 0))))
+    (newline 2)
+    (forward-line -2)
+    (insert stars)))
+
+
+(defun alb-org-insert-heading-after ()
+  "Move beyond the containing heading and insert a matching heading"
+  (interactive)
+  (let ((stars (progn (if (org-before-first-heading-p)
+                          (outline-next-heading)
+                        (outline-back-to-heading))
+                      (looking-at outline-regexp)
+                      (match-string-no-properties 0))))
+    (org-end-of-subtree)
+    (newline 2)
+    (insert stars)))
 
 
 (defun alb-org-update-headline-statistics ()

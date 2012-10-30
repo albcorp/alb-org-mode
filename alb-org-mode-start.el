@@ -179,9 +179,9 @@
     (define-key org-mode-map "\C-co" 'org-open-at-point)
 
     ;; Outline structure editing
-    (define-key org-mode-map "\C-ci"
-      'alb-org-insert-heading-after-current)
-    (define-key org-mode-map "\C-cj" 'org-capture)
+    (define-key org-mode-map "\C-ci" 'alb-org-insert-heading-before)
+    (define-key org-mode-map "\C-cj" 'alb-org-insert-heading-after)
+    (define-key org-mode-map "\C-cc" 'org-capture)
     (define-key org-mode-map "\C-cw" 'org-refile)
 
     ;; Clock commands
@@ -226,8 +226,7 @@
             ("S" . org-save-all-org-buffers)
             ("Outline navigation")
             ("u" . (org-speed-move-safe 'outline-up-heading))
-            ("p" . (org-speed-move-safe
-                    'outline-previous-visible-heading))
+            ("p" . (org-speed-move-safe 'outline-previous-visible-heading))
             ("n" . (org-speed-move-safe 'outline-next-visible-heading))
             ("b" . (org-speed-move-safe 'org-backward-same-level))
             ("f" . (org-speed-move-safe 'org-forward-same-level))
@@ -247,8 +246,9 @@
             ("F" . org-move-subtree-down)
             ("L" . (progn (org-promote) (outline-back-to-heading)))
             ("R" . (progn (org-demote) (outline-back-to-heading)))
-            ("i" . alb-org-insert-heading-after-current)
-            ("j" . org-capture)
+            ("i" . alb-org-insert-heading-before)
+            ("j" . alb-org-insert-heading-after)
+            ("c" . org-capture)
             ("w" . org-refile)
             ("Clock commands")
             ("I" . org-clock-in)
