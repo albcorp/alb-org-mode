@@ -175,10 +175,11 @@
     (define-key org-mode-map "\C-cn" 'outline-next-visible-heading)
     (define-key org-mode-map "\C-a" 'org-beginning-of-line)
     (define-key org-mode-map "\C-e" 'org-end-of-line)
-    (define-key org-mode-map "\C-c." 'outline-mark-subtree)
     (define-key org-mode-map "\C-co" 'org-open-at-point)
 
     ;; Outline structure editing
+    (define-key org-mode-map "\C-c." 'outline-mark-subtree)
+    (define-key org-mode-map "\C-ca" 'org-archive-subtree-default)
     (define-key org-mode-map "\C-ci" 'alb-org-insert-heading-before)
     (define-key org-mode-map "\C-cj" 'alb-org-insert-heading-after)
     (define-key org-mode-map "\C-cc" 'org-capture)

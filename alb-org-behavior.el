@@ -174,20 +174,6 @@ ID.")
 ;;; *** FUNCTION DEFINITIONS **************************************************
 
 
-(defun alb-org-capture-location-new-project ()
-  "Interactively construct project label and place point inside the file
-
-This function customises Org-Mode.  See `org-capture-templates`."
-  (let* ((proj-role (read-string "Project role: "))
-         (proj-subject (read-string "Project subject: "))
-         (proj-responsibility (read-string "Project responsibility: "))
-         (bname (concat "prj-" proj-role "-" proj-subject
-                        "-" proj-responsibility))
-         (fname (concat default-directory bname ".org")))
-    (find-file fname)
-    (goto-char (point-min))))
-
-
 (defun alb-org-whitespace-cleanup ()
   "Clean buffer of Org-Mode specific whitespace issues
 
