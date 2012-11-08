@@ -217,6 +217,32 @@ This function customises Org-Mode."
           ((string< b-body a-body) 1))))
 
 
+(defun alb-org-sort-key ()
+  "Generate a key for sorting the entry at point
+
+Ensures that TODO items sort first by TODO state, and then by a
+variety of measures dependent on the TODO state.  This function
+customises Org-Mode."
+  (let* ((components (org-heading-components))
+         (todo (nth 2 components))
+         (head (nth 4 components)))
+    (if todo
+        (let* ((properties (org-entry-properties))
+               (deadline (cdr (assoc "DEADLINE" properties)))
+               (timestamp (cdr (assoc "TIMESTAMP_IA" properties))))
+          (cond ((or (string= todo "DUTY") (string= todo "HOLD"))
+                 (concat "1#" head))
+                ((or (string= todo "DONE") (string= todo "STOP"))
+                 (concat "2#" timestamp "#" head))
+                ((string= todo "WAIT")
+                 (concat "3#" timestamp "#" head))
+                ((string= todo "NEXT")
+                 (concat "4#" deadline "#" head))
+                ((string= todo "TODO")
+                 (concat "5#" deadline "#" head))))
+      (concat "0#" head))))
+
+
 (defun alb-org-widen ()
   "Widen to the whole buffer and centre the headline"
   (interactive)
