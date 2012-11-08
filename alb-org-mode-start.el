@@ -176,6 +176,7 @@
     (define-key org-mode-map "\C-a" 'org-beginning-of-line)
     (define-key org-mode-map "\C-e" 'org-end-of-line)
     (define-key org-mode-map "\C-co" 'org-open-at-point)
+    (define-key org-mode-map "\C-cb" 'org-mark-ring-goto)
 
     ;; Outline structure editing
     (define-key org-mode-map "\C-c." 'outline-mark-subtree)
