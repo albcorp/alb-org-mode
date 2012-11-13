@@ -210,6 +210,8 @@
     (define-key org-mode-map "\C-c!" 'org-time-stamp-inactive)
     (define-key org-mode-map [(shift up)] 'org-timestamp-up)
     (define-key org-mode-map [(shift down)] 'org-timestamp-down)
+    (define-key org-mode-map [(control return)] 'alb-org-newline-before)
+    (define-key org-mode-map [(control shift return)] 'alb-org-newline-after)
     (define-key org-mode-map [(meta return)] 'alb-org-insert-item)
     (define-key org-mode-map [(meta shift return)]
       'alb-org-insert-checkbox)

@@ -325,6 +325,20 @@ line, and places the cursor at the end of the second blank line."
     (insert stars)))
 
 
+(defun alb-org-newline-before ()
+  "Insert a newline before the current line"
+  (interactive)
+  (save-excursion (beginning-of-line)
+                  (newline)))
+
+
+(defun alb-org-newline-after ()
+  "Insert a newline after the current line"
+  (interactive)
+  (save-excursion (beginning-of-line 2)
+                  (newline)))
+
+
 (defun alb-org-update-headline-statistics ()
   "Update the statistics cookie on the headline
 
