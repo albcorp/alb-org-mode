@@ -220,27 +220,34 @@ This function customises Org-Mode."
 (defun alb-org-sort-key ()
   "Generate a key for sorting the entry at point
 
-Ensures that TODO items sort first by TODO state, and then by a
-variety of measures dependent on the TODO state.  This function
-customises Org-Mode."
-  (let* ((components (org-heading-components))
-         (todo (nth 2 components))
-         (head (nth 4 components)))
-    (if todo
-        (let* ((properties (org-entry-properties))
-               (deadline (cdr (assoc "DEADLINE" properties)))
-               (timestamp (cdr (assoc "TIMESTAMP_IA" properties))))
-          (cond ((or (string= todo "DUTY") (string= todo "HOLD"))
-                 (concat "1#" head))
-                ((or (string= todo "DONE") (string= todo "STOP"))
-                 (concat "2#" timestamp "#" head))
-                ((string= todo "WAIT")
-                 (concat "3#" timestamp "#" head))
-                ((string= todo "NEXT")
-                 (concat "4#" deadline "#" head))
-                ((string= todo "TODO")
-                 (concat "5#" deadline "#" head))))
-      (concat "0#" head))))
+Ensures that TODO items are sorted by an augmented reverse
+chronological order.  Namely, the todo state, and various
+properties are given a chronological interpretation.  All =DUTY=
+and =HOLD= items occur before all =TODO= items, which occur
+before all =NEXT= items, which occur before all =WAIT= items,
+which occur before all =DONE= and =STOP= items.  =DUTY= items are
+sorted by effort, =TODO= and =NEXT= items are sorted by deadline,
+and =WAIT=, =DONE=, and =STOP= items are sorted by last
+timestamp.  This function customises Org-Mode."
+  (let* ((head (org-get-heading t t))
+         (properties (org-entry-properties))
+         (todo (cdr (assoc "TODO" properties)))
+         (deadline (cdr (assoc "DEADLINE" properties)))
+         (timestamp (cdr (assoc "TIMESTAMP_IA" properties))))
+    (cond
+     ;; XXX the sort order is not worked out yet
+     ((not todo)
+      (concat "0#" head))
+     ((or (string= todo "DUTY") (string= todo "HOLD"))
+      (concat "1#" head)))
+     ((string= todo "TODO")
+      (concat "2#" deadline "#" head))
+     ((string= todo "NEXT")
+      (concat "3#" deadline "#" head))
+     ((string= todo "WAIT")
+      (concat "4#" timestamp "#" head))
+     ((or (string= todo "DONE") (string= todo "STOP"))
+      (concat "5#" timestamp "#" head))))
 
 
 (defun alb-org-widen ()
