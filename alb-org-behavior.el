@@ -239,7 +239,7 @@ timestamp.  This function customises Org-Mode."
      ((not todo)
       (concat "0#" head))
      ((or (string= todo "DUTY") (string= todo "HOLD"))
-      (concat "1#" head)))
+      (concat "1#" head))
      ((string= todo "TODO")
       (concat "2#" deadline "#" head))
      ((string= todo "NEXT")
@@ -247,7 +247,7 @@ timestamp.  This function customises Org-Mode."
      ((string= todo "WAIT")
       (concat "4#" timestamp "#" head))
      ((or (string= todo "DONE") (string= todo "STOP"))
-      (concat "5#" timestamp "#" head))))
+      (concat "5#" timestamp "#" head)))))
 
 
 (defun alb-org-widen ()
