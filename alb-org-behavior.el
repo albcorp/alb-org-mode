@@ -202,8 +202,16 @@ Add `alb-org-whitespace-cleanup` to the buffer local
   (add-hook 'write-contents-functions 'alb-org-whitespace-cleanup))
 
 
+(defun alb-org-agenda-tag (tags)
+  "Return the agenda tag of the heading at point"
+  (apply 'concat (mapcar (lambda (s) (if (string-match "^@.*" s)
+                                         (match-string 0 s)
+                                       ""))
+                         (split-string tags ":"))))
+
+
 (defun alb-org-agenda-cmp (a b)
-  "Compare the agenda entries A and B using lexicographic order.
+  "Compare the agenda entries A and B using lexicographic order
 
 This function customises Org-Mode."
   (let ((a-body (if (string-match alb-re-org-heading a)
@@ -214,6 +222,20 @@ This function customises Org-Mode."
                   b)))
     (cond ((string< a-body b-body) -1)
           ((string< b-body a-body) 1))))
+
+
+(defun alb-org-agenda-cmp-agenda-tag (a b)
+  "Compare the agenda entries A and B based on the agenda tag
+
+This function customises Org-Mode."
+  (let* ((a-tags (if (string-match alb-re-org-heading a)
+                     (alb-org-agenda-tag (match-string 5 a))
+                   ""))
+         (b-tags (if (string-match alb-re-org-heading b)
+                     (alb-org-agenda-tag (match-string 5 b))
+                   "")))
+    (cond ((string< a-tags b-tags) -1)
+          ((string< b-tags a-tags) 1))))
 
 
 (defun alb-org-sort-rank (properties)
