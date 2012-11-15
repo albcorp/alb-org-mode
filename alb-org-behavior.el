@@ -202,8 +202,110 @@ Add `alb-org-whitespace-cleanup` to the buffer local
   (add-hook 'write-contents-functions 'alb-org-whitespace-cleanup))
 
 
+(defun alb-org-backward-up-structure ()
+  "Move backward out one level of Org-Mode structure
+
+This function is intended to be the analogue of
+`backward-up-list` for the case of navigating Org-Mode
+structures.  It navigates headings and plain lists, and ignores
+everything else with one exception.  A preamble is text that
+directly follows a heading, but is not part of a list.  When
+present, a preamble is treated as if it encloses any list that
+directly follows it.  This function customises Org-Mode."
+  (interactive)
+  (let* ((curr-pos (point))
+         (zero-pos (save-excursion (goto-char (point-min))
+                                   (outline-next-visible-heading 1)
+                                   (point)))
+         (head-pos (save-excursion (outline-back-to-heading)
+                                   (point)))
+         (eofp-pos (save-excursion (goto-char head-pos)
+                                   (looking-at alb-re-org-heading)
+                                   (goto-char (match-end 0))
+                                   (looking-at alb-re-org-metadata)
+                                   (match-end 0)))
+         (text-pos (save-excursion (goto-char eofp-pos)
+                                   (looking-at "[[:space:]]*")
+                                   (match-end 0)))
+         (item-pos (org-in-item-p))
+         (bullet-pos (if item-pos
+                         (save-excursion (goto-char item-pos)
+                                         (looking-at org-list-full-item-re)
+                                         (match-beginning 1)))))
+    (cond ((<= curr-pos zero-pos)
+           (goto-char zero-pos))
+          ((<= curr-pos head-pos)
+           (outline-up-heading 1))
+          ((and (<= head-pos curr-pos) (<= curr-pos eofp-pos))
+           (goto-char head-pos))
+          ((<= curr-pos text-pos)
+           (goto-char head-pos))
+          ((not item-pos)
+           (goto-char text-pos))
+          ((<= curr-pos bullet-pos)
+           (goto-char text-pos))
+          ((< bullet-pos curr-pos)
+           (goto-char bullet-pos))
+          (t
+           (let* ((struct (org-list-struct))
+                  (parents (org-list-parents-alist struct))
+                  (parent-pos (org-list-get-parent item-pos struct parents)))
+             (goto-char parent-pos)
+             (looking-at org-list-full-item-re)
+             (goto-char (match-beginning 1)))))))
+
+
+(defun alb-org-down-structure ()
+  "Move forward down one level of Org-Mode structure
+
+This function is intended to be the analogue of `down-list` for
+the case of navigating Org-Mode structures.  It navigates
+headings and plain lists, and ignores everything else with one
+exception.  A preamble is text that directly follows a heading,
+but is not part of a list.  When present, a preamble is treated
+as if it encloses any list that directly follows it.  This
+function customises Org-Mode."
+  (interactive)
+  (let* ((curr-pos (point))
+         (head-pos (save-excursion (outline-back-to-heading)
+                                   (point)))
+         (eofp-pos (save-excursion (goto-char head-pos)
+                                   (looking-at alb-re-org-heading)
+                                   (goto-char (match-end 0))
+                                   (looking-at alb-re-org-metadata)
+                                   (match-end 0)))
+         (text-pos (save-excursion (goto-char eofp-pos)
+                                   (looking-at "[[:space:]]*")
+                                   (match-end 0)))
+         (item-pos (org-in-item-p))
+         (bullet-pos (if item-pos
+                         (save-excursion (goto-char item-pos)
+                                         (looking-at org-list-full-item-re)
+                                         (match-beginning 1)))))
+    (cond ((and (<= head-pos curr-pos) (< curr-pos text-pos))
+           (goto-char text-pos))
+          ;; XXX UP TO HERE!
+          ((and (<= head-pos curr-pos) (<= curr-pos eofp-pos))
+           (goto-char head-pos))
+          ((<= curr-pos text-pos)
+           (goto-char head-pos))
+          ((not item-pos)
+           (goto-char text-pos))
+          ((< bullet-pos curr-pos)
+           (goto-char bullet-pos))
+          (t
+           (let* ((struct (org-list-struct))
+                  (parents (org-list-parents-alist struct))
+                  (parent-pos (org-list-get-parent item-pos struct parents)))
+             (goto-char parent-pos)
+             (looking-at org-list-full-item-re)
+             (goto-char (match-beginning 1)))))))
+
+
 (defun alb-org-context-activity (tags)
-  "Return the activity context embedded in the TAGS string"
+  "Return the activity context embedded in the TAGS string
+
+This function customises Org-Mode."
   (apply 'concat (mapcar (lambda (s) (if (string-match "^act_.*" s)
                                          (match-string 0 s)
                                        ""))
@@ -211,7 +313,9 @@ Add `alb-org-whitespace-cleanup` to the buffer local
 
 
 (defun alb-org-context-agenda (tags)
-  "Return the agenda context embedded in the TAGS string"
+  "Return the agenda context embedded in the TAGS string
+
+This function customises Org-Mode."
   (apply 'concat (mapcar (lambda (s) (if (string-match "^@.*" s)
                                          (match-string 0 s)
                                        ""))
