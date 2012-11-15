@@ -202,40 +202,48 @@ Add `alb-org-whitespace-cleanup` to the buffer local
   (add-hook 'write-contents-functions 'alb-org-whitespace-cleanup))
 
 
-(defun alb-org-agenda-tag (tags)
-  "Return the agenda tag of the heading at point"
+(defun alb-org-context-activity (tags)
+  "Return the activity context embedded in the TAGS string"
+  (apply 'concat (mapcar (lambda (s) (if (string-match "^act_.*" s)
+                                         (match-string 0 s)
+                                       ""))
+                         (split-string tags ":"))))
+
+
+(defun alb-org-context-agenda (tags)
+  "Return the agenda context embedded in the TAGS string"
   (apply 'concat (mapcar (lambda (s) (if (string-match "^@.*" s)
                                          (match-string 0 s)
                                        ""))
                          (split-string tags ":"))))
 
 
-(defun alb-org-agenda-cmp (a b)
-  "Compare the agenda entries A and B using lexicographic order
+(defun alb-org-agenda-cmp-context-activity (a b)
+  "Compare the agenda entries A and B based on the activity context
 
 This function customises Org-Mode."
-  (let ((a-body (if (string-match alb-re-org-heading a)
-                    (match-string 4 a)
-                  a))
-        (b-body (if (string-match alb-re-org-heading b)
-                    (match-string 4 b)
-                  b)))
-    (cond ((string< a-body b-body) -1)
-          ((string< b-body a-body) 1))))
+  (let ((a-tag (if (string-match alb-re-org-heading a)
+                   (alb-org-context-activity (match-string 5 a))
+                 ""))
+        (b-tag (if (string-match alb-re-org-heading b)
+                   (alb-org-context-activity (match-string 5 b))
+                 "")))
+    (cond ((string< a-tag b-tag) -1)
+          ((string< b-tag a-tag) 1))))
 
 
-(defun alb-org-agenda-cmp-agenda-tag (a b)
-  "Compare the agenda entries A and B based on the agenda tag
+(defun alb-org-agenda-cmp-context-agenda (a b)
+  "Compare the agenda entries A and B based on the agenda context
 
 This function customises Org-Mode."
-  (let* ((a-tags (if (string-match alb-re-org-heading a)
-                     (alb-org-agenda-tag (match-string 5 a))
-                   ""))
-         (b-tags (if (string-match alb-re-org-heading b)
-                     (alb-org-agenda-tag (match-string 5 b))
-                   "")))
-    (cond ((string< a-tags b-tags) -1)
-          ((string< b-tags a-tags) 1))))
+  (let ((a-tag (if (string-match alb-re-org-heading a)
+                   (alb-org-context-agenda (match-string 5 a))
+                 ""))
+        (b-tag (if (string-match alb-re-org-heading b)
+                   (alb-org-context-agenda (match-string 5 b))
+                 "")))
+    (cond ((string< a-tag b-tag) -1)
+          ((string< b-tag a-tag) 1))))
 
 
 (defun alb-org-sort-rank (properties)
