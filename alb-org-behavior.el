@@ -312,6 +312,10 @@ and reaching the heading.  This function customises Org-Mode."
                                    (goto-char (match-end 0))
                                    (looking-at "[[:space:]]*")
                                    (match-end 0)))
+         (block-pos (if (org-in-block-p '("src"))
+                        (save-excursion (org-babel-goto-src-block-head)
+                                        (looking-at "[[:space:]]*")
+                                        (match-end 0))))
          (last-pos (save-excursion (goto-char head-pos)
                                    (if (outline-next-heading)
                                        (point)
@@ -323,6 +327,8 @@ and reaching the heading.  This function customises Org-Mode."
       (outline-up-heading 1))
      ((and (<= head-pos curr-pos) (<= curr-pos text-pos))
       (goto-char head-pos))
+     ((and block-pos (< block-pos curr-pos))
+      (goto-char block-pos))
      (t
       (let ((item-pos (org-in-item-p)))
         (if item-pos
