@@ -169,9 +169,10 @@
     (define-key org-mode-map "\C-cC" 'org-columns)
 
     ;; Outline navigation
-    (define-key org-mode-map [home] 'alb-org-home)
-    (define-key org-mode-map [end] 'alb-org-end)
     (define-key org-mode-map "\C-\M-u" 'alb-org-backward-up-structure)
+    (define-key org-mode-map "\C-\M-d" 'alb-org-down-structure)
+    (define-key org-mode-map "\C-\M-b" 'alb-org-backward-structure)
+    (define-key org-mode-map "\C-\M-f" 'alb-org-forward-structure)
     (define-key org-mode-map "\C-cp" 'outline-previous-visible-heading)
     (define-key org-mode-map "\C-cn" 'outline-next-visible-heading)
     (define-key org-mode-map "\C-a" 'org-beginning-of-line)
