@@ -173,6 +173,8 @@
     (define-key org-mode-map "\C-\M-d" 'alb-org-down-structure)
     (define-key org-mode-map "\C-\M-b" 'alb-org-backward-structure)
     (define-key org-mode-map "\C-\M-f" 'alb-org-forward-structure)
+    (define-key org-mode-map "\C-\M-p" 'outline-previous-visible-heading)
+    (define-key org-mode-map "\C-\M-n" 'outline-next-visible-heading)
     (define-key org-mode-map "\C-cp" 'outline-previous-visible-heading)
     (define-key org-mode-map "\C-cn" 'outline-next-visible-heading)
     (define-key org-mode-map "\C-a" 'org-beginning-of-line)
