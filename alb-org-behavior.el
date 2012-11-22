@@ -237,55 +237,59 @@ XXX This function customises Org-Mode."
   "Find CURR-POS in a preamble and move backward and up
 
 XXX  This function customises Org-Mode."
-  (let ((text-pos (car (car entry-struct)))
-        (struct (cdr (car entry-struct))))
-    (if struct
-        (let ((star-pos (save-excursion (goto-char
-                                         (org-list-get-top-point struct))
-                                        (looking-at "[[:space:]]*")
-                                        (match-end 0))))
-          (cond
-           ((<= curr-pos text-pos)
-            (goto-char head-pos))
-           ((<= curr-pos star-pos)
-            (goto-char text-pos))
-           (t
-            (alb-org-backward-up-preamble-visit
-             head-pos curr-pos (cdr entry-struct)))))
-      (goto-char text-pos))))
+  (if entry-struct
+      (let ((text-pos (car (car entry-struct)))
+            (struct (cdr (car entry-struct))))
+        (if struct
+            (let ((star-pos (save-excursion (goto-char
+                                             (org-list-get-top-point struct))
+                                            (looking-at "[[:space:]]*")
+                                            (match-end 0))))
+              (cond
+               ((<= curr-pos text-pos)
+                (goto-char head-pos))
+               ((<= curr-pos star-pos)
+                (goto-char text-pos))
+               (t
+                (alb-org-backward-up-preamble-visit
+                 head-pos curr-pos (cdr entry-struct)))))
+          (goto-char text-pos)))))
 
 
 (defun alb-org-backward-up-item-visit (head-pos curr-pos item-pos entry-struct)
   "Find CURR-POS in a list and move backward and up
 
 XXX  This function customises Org-Mode."
-  (let ((struct (cdr (car entry-struct))))
-    (if (assoc item-pos struct)
-        (let* ((parents (org-list-parents-alist struct))
-               (text-pos (car (car entry-struct)))
-               (curr-star-pos (save-excursion (goto-char item-pos)
-                                              (looking-at "[[:space:]]*")
-                                              (match-end 0)))
-               (pred-item-pos (org-list-get-parent item-pos struct parents))
-               (pred-star-pos (if pred-item-pos
-                                  (save-excursion (goto-char pred-item-pos)
+  (if entry-struct
+      (let ((struct (cdr (car entry-struct))))
+        (if (assoc item-pos struct)
+            (let* ((parents (org-list-parents-alist struct))
+                   (text-pos (car (car entry-struct)))
+                   (curr-star-pos (save-excursion (goto-char item-pos)
                                                   (looking-at "[[:space:]]*")
-                                                  (match-end 0))))
-               (top-star-pos (save-excursion (goto-char
-                                              (org-list-get-top-point struct))
-                                             (looking-at "[[:space:]]*")
-                                             (match-end 0))))
-          (cond
-           ((< curr-star-pos curr-pos)
-            (goto-char curr-star-pos))
-           (pred-item-pos
-            (goto-char pred-star-pos))
-           ((< text-pos top-star-pos)
-            (goto-char text-pos))
-           (t
-            (goto-char head-pos))))
-      (alb-org-backward-up-item-visit
-       head-pos curr-pos item-pos (cdr entry-struct)))))
+                                                  (match-end 0)))
+                   (pred-item-pos (org-list-get-parent item-pos struct parents))
+                   (pred-star-pos (if pred-item-pos
+                                      (save-excursion (goto-char pred-item-pos)
+                                                      (looking-at
+                                                       "[[:space:]]*")
+                                                      (match-end 0))))
+                   (top-star-pos (save-excursion (goto-char
+                                                  (org-list-get-top-point
+                                                   struct))
+                                                 (looking-at "[[:space:]]*")
+                                                 (match-end 0))))
+              (cond
+               ((< curr-star-pos curr-pos)
+                (goto-char curr-star-pos))
+               (pred-item-pos
+                (goto-char pred-star-pos))
+               ((< text-pos top-star-pos)
+                (goto-char text-pos))
+               (t
+                (goto-char head-pos))))
+          (alb-org-backward-up-item-visit
+           head-pos curr-pos item-pos (cdr entry-struct))))))
 
 
 (defun alb-org-backward-up-structure ()
@@ -342,42 +346,44 @@ customises Org-Mode."
   "Find CURR-POS in a preamble and move down
 
 XXX  This function customises Org-Mode."
-  (let ((text-pos (car (car entry-struct)))
-        (struct (cdr (car entry-struct))))
-    (if struct
-        (let ((star-pos (save-excursion (goto-char
-                                         (org-list-get-top-point struct))
-                                        (looking-at "[[:space:]]*")
-                                        (match-end 0))))
-          (cond
-           ((< curr-pos text-pos)
-            (goto-char text-pos))
-           ((< curr-pos star-pos)
-            (goto-char star-pos))
-           (t
-            (alb-org-down-preamble-visit curr-pos (cdr entry-struct)))))
-      (if (< curr-pos text-pos)
-          (goto-char text-pos)))))
+  (if entry-struct
+      (let ((text-pos (car (car entry-struct)))
+            (struct (cdr (car entry-struct))))
+        (if struct
+            (let ((star-pos (save-excursion (goto-char
+                                             (org-list-get-top-point struct))
+                                            (looking-at "[[:space:]]*")
+                                            (match-end 0))))
+              (cond
+               ((< curr-pos text-pos)
+                (goto-char text-pos))
+               ((< curr-pos star-pos)
+                (goto-char star-pos))
+               (t
+                (alb-org-down-preamble-visit curr-pos (cdr entry-struct)))))
+          (if (< curr-pos text-pos)
+              (goto-char text-pos))))))
 
 
 (defun alb-org-down-item-visit (curr-pos item-pos entry-struct)
   "Find CURR-POS in a list and move down
 
 XXX  This function customises Org-Mode."
-  (let ((struct (cdr (car entry-struct))))
-    (if (assoc item-pos struct)
-        (let ((star-pos (save-excursion (goto-char item-pos)
-                                        (looking-at "[[:space:]]*")
-                                        (match-end 0)))
-              (succ-pos (org-list-has-child-p item-pos struct)))
-          (cond
-           ((< curr-pos star-pos )
-            (goto-char star-pos))
-           (succ-pos
-            (goto-char succ-pos)
-            (looking-at "[[:space:]]*")
-            (goto-char (match-end 0)))))
-      (alb-org-down-item-visit curr-pos item-pos (cdr entry-struct)))))
+  (if entry-struct
+      (let ((struct (cdr (car entry-struct))))
+        (if (assoc item-pos struct)
+            (let ((star-pos (save-excursion (goto-char item-pos)
+                                            (looking-at "[[:space:]]*")
+                                            (match-end 0)))
+                  (succ-pos (org-list-has-child-p item-pos struct)))
+              (cond
+               ((< curr-pos star-pos )
+                (goto-char star-pos))
+               (succ-pos
+                (goto-char succ-pos)
+                (looking-at "[[:space:]]*")
+                (goto-char (match-end 0)))))
+          (alb-org-down-item-visit curr-pos item-pos (cdr entry-struct))))))
 
 
 (defun alb-org-down-structure ()
@@ -412,7 +418,8 @@ function customises Org-Mode."
                                              0)))
                (last-pos (save-excursion (goto-char head-pos)
                                          (if (outline-next-heading)
-                                             (point)))))
+                                             (point)
+                                           (point-max)))))
           (cond
            ((and (<= head-pos curr-pos) (< curr-pos text-pos))
             (cond
@@ -448,21 +455,22 @@ XXX  This function customises Org-Mode."
   "Find CURR-POS in a list and move to the next item
 
 XXX  This function customises Org-Mode."
-  (let ((struct (cdr (car entry-struct))))
-    (if (assoc item-pos struct)
-        (let* ((prevs (org-list-prevs-alist struct))
-               (star-pos (save-excursion (goto-char item-pos)
-                                         (looking-at "[[:space:]]*")
-                                         (match-end 0)))
-               (pred-pos (org-list-get-prev-item item-pos struct prevs)))
-          (cond
-           ((< star-pos curr-pos )
-            (goto-char star-pos))
-           (pred-pos
-            (goto-char pred-pos)
-            (looking-at "[[:space:]]*")
-            (goto-char (match-end 0)))))
-      (alb-org-backward-item-visit curr-pos item-pos (cdr entry-struct)))))
+  (if entry-struct
+      (let ((struct (cdr (car entry-struct))))
+        (if (assoc item-pos struct)
+            (let* ((prevs (org-list-prevs-alist struct))
+                   (star-pos (save-excursion (goto-char item-pos)
+                                             (looking-at "[[:space:]]*")
+                                             (match-end 0)))
+                   (pred-pos (org-list-get-prev-item item-pos struct prevs)))
+              (cond
+               ((< star-pos curr-pos )
+                (goto-char star-pos))
+               (pred-pos
+                (goto-char pred-pos)
+                (looking-at "[[:space:]]*")
+                (goto-char (match-end 0)))))
+          (alb-org-backward-item-visit curr-pos item-pos (cdr entry-struct))))))
 
 
 (defun alb-org-backward-structure ()
@@ -508,31 +516,33 @@ function customises Org-Mode."
   "Find CURR-POS in a preamble and move to the next preamble
 
 XXX  This function customises Org-Mode."
-  (let ((text-pos (car (car entry-struct))))
-    (if (< curr-pos text-pos)
-        (goto-char text-pos)
-      (alb-org-forward-preamble-visit curr-pos (cdr entry-struct)))))
+  (if entry-struct
+      (let ((text-pos (car (car entry-struct))))
+        (if (< curr-pos text-pos)
+            (goto-char text-pos)
+          (alb-org-forward-preamble-visit curr-pos (cdr entry-struct))))))
 
 
 (defun alb-org-forward-item-visit (curr-pos item-pos entry-struct)
   "Find CURR-POS in a list and move to the next item
 
 XXX  This function customises Org-Mode."
-  (let ((struct (cdr (car entry-struct))))
-    (if (assoc item-pos struct)
-        (let* ((prevs (org-list-prevs-alist struct))
-               (star-pos (save-excursion (goto-char item-pos)
-                                         (looking-at "[[:space:]]*")
-                                         (match-end 0)))
-               (succ-pos (org-list-get-next-item item-pos struct prevs)))
-          (cond
-           ((< curr-pos star-pos )
-            (goto-char star-pos))
-           (succ-pos
-            (goto-char succ-pos)
-            (looking-at "[[:space:]]*")
-            (goto-char (match-end 0)))))
-      (alb-org-forward-item-visit curr-pos item-pos (cdr entry-struct)))))
+  (if entry-struct
+      (let ((struct (cdr (car entry-struct))))
+        (if (assoc item-pos struct)
+            (let* ((prevs (org-list-prevs-alist struct))
+                   (star-pos (save-excursion (goto-char item-pos)
+                                             (looking-at "[[:space:]]*")
+                                             (match-end 0)))
+                   (succ-pos (org-list-get-next-item item-pos struct prevs)))
+              (cond
+               ((< curr-pos star-pos )
+                (goto-char star-pos))
+               (succ-pos
+                (goto-char succ-pos)
+                (looking-at "[[:space:]]*")
+                (goto-char (match-end 0)))))
+          (alb-org-forward-item-visit curr-pos item-pos (cdr entry-struct))))))
 
 
 (defun alb-org-forward-structure ()
