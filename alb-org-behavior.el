@@ -520,7 +520,8 @@ XXX  This function customises Org-Mode."
       (let ((text-pos (car (car entry-struct))))
         (if (< curr-pos text-pos)
             (goto-char text-pos)
-          (alb-org-forward-preamble-visit curr-pos (cdr entry-struct))))))
+          (alb-org-forward-preamble-visit curr-pos (cdr entry-struct))))
+    (outline-next-visible-heading 1)))
 
 
 (defun alb-org-forward-item-visit (curr-pos item-pos entry-struct)
@@ -560,24 +561,29 @@ function customises Org-Mode."
     (let* ((curr-pos (point))
            (head-pos (save-excursion (org-back-to-heading)
                                      (point)))
-           (text-pos (save-excursion (goto-char head-pos)
+           (eofh-pos (save-excursion (goto-char head-pos)
                                      (looking-at alb-re-org-heading)
                                      (goto-char (match-end 0))
                                      (looking-at alb-re-org-metadata)
-                                     (goto-char (match-end 0))
+                                     (match-end 0)))
+           (text-pos (save-excursion (goto-char eofh-pos)
                                      (looking-at "[[:space:]]*")
                                      (match-end 0))))
-      (if (and (<= head-pos curr-pos) (< curr-pos text-pos))
-          (org-forward-same-level 1)
+      (cond
+       ((< curr-pos eofh-pos)
+        (org-forward-same-level 1))
+       ((< curr-pos text-pos)
+        (goto-char text-pos))
+       (t
         (let* ((last-pos (save-excursion (goto-char head-pos)
-                                         (if (outline-next-heading)
-                                             (point)
-                                           (point-max))))
+                                     (if (outline-next-heading)
+                                         (point)
+                                       (point-max))))
                (item-pos (org-in-item-p))
                (entry-struct (alb-org-entry-structure text-pos last-pos)))
           (if item-pos
               (alb-org-forward-item-visit curr-pos item-pos entry-struct)
-            (alb-org-forward-preamble-visit curr-pos entry-struct)))))))
+            (alb-org-forward-preamble-visit curr-pos entry-struct))))))))
 
 
 (defun alb-org-context-activity (tags)
