@@ -258,7 +258,7 @@
             ("j" . alb-org-insert-heading-after)
             ("c" . org-capture)
             ("w" . org-refile)
-            ("^" . (org-sort-entries nil ?f 'alb-org-sort-key 'alb-org-sort-pred))
+            ("^" . (org-sort-entries nil ?f 'alb-org-sort-string))
             ("Clock commands")
             ("I" . org-clock-in)
             ("O" . org-clock-out)
