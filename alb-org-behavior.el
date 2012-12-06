@@ -94,15 +94,31 @@ start and end of line.  It consumes 5 subexpressions as follows.
           "\\)*")
   "Regexp matching the possibly-empty properties metadata for a
 heading. The match includes the newline terminating the headline,
-but excludes the newline terminating the metadata. It consumes 0
+but excludes the newline terminating the metadata.  It consumes 0
 subexpressions.")
 
 
+(defconst alb-re-org-heading-and-ws
+  (concat alb-re-org-heading
+          alb-re-org-metadata
+          "[[:space:]]*")
+  "Regexp matching an Org-Mode heading, and following metadata
+and whitespace with anchoring to the start of line.  It consumes
+5 subexpressions as follows.
+
+1. (optional) Asterisks
+2. (optional) TODO keyword
+3. (optional) Priority
+4. (mandatory) Heading text including (optional) statistics and
+   trailing whitespace
+5. (optional) Tags")
+
+
 (defconst alb-re-org-project-filename
-  "^\\(.*\\)/\\(prj\\|jrn\\)-\\([0-9a-z-]*\\)\\.org$"
+  "^\\(.*\\)/prj-\\([0-9a-z-]*\\)\\.org$"
   "Regexp matching a project filename for use in formatting
 column views. The first subexpression matches the directory part
-of the filename. The third subexpression matches the project
+of the filename. The second subexpression matches the project
 ID.")
 
 
@@ -226,7 +242,17 @@ See `alb-org-entry-structure`."
 (defun alb-org-entry-structure (text-pos last-pos)
   "Collect the structure below a heading
 
-XXX Explain preamble and list.  This function customises
+Let TEXT-POS be the position of the first non-whitespace
+character in a non-empty entry, and LAST-POS be a position after
+the entry.  Define the *entry* as the text between the end of a
+heading's meta-data, and the start of the next heading or end of
+buffer.  Define the *preamble* as the possibly empty text before
+each top-level list in the entry.  Parse the entry into a
+sequence of preamble-list pairs represented by an alist that maps
+the position of the first non-whitespace character to the alist
+returned by `org-list-struct`.  Note that an empty preamble is
+identified by the fact that the position of the preamble is the
+position of the top of the list.  This function customises
 Org-Mode."
   (save-excursion
     (goto-char text-pos)
@@ -234,32 +260,40 @@ Org-Mode."
     (alb-org-entry-structure-visit last-pos)))
 
 
-(defun alb-org-backward-up-item-visit (curr-pos item-pos struct parents)
+(defun alb-org-visible-pos (pos)
+  "Return POS only if it is visible
+
+This function customises Org-Mode."
+  (save-excursion (goto-char pos)
+                  (and (not (outline-invisible-p))
+                       (point))))
+
+
+(defun alb-org-backward-up-item-pos (curr-pos item-pos struct parents)
   "Find CURR-POS in a list and move backward and up
 
 Let CURR-POS be the position of point, ITEM-POS be the start of
 an enclosing list item, STRUCT be the enclosing list structure as
 returned by `org-list-struct`, and PARENTS be the alist returned
 by `org-list-parents-alist`.  Recur on the parents of ITEM-POS
-searching for a visible ancestor.  If found, return true and
-leave point at the bullet of the ancestor list item.  Otherwise,
-return nil.  This function customises Org-Mode."
+searching for a visible ancestor.  If found, return the position
+of the bullet of the ancestor list item.  Do not move point.
+This function customises Org-Mode."
   (if item-pos
       (let ((star-pos (save-excursion (goto-char item-pos)
                                       (looking-at "[[:space:]]*")
                                       (match-end 0))))
         (if (< star-pos curr-pos)
-            (or (and (goto-char star-pos)
-                     (not (outline-invisible-p)))
-                (alb-org-backward-up-item-visit
+            (or (alb-org-visible-pos star-pos)
+                (alb-org-backward-up-item-pos
                  curr-pos (org-list-get-parent item-pos struct parents)
                  struct parents))
-          (alb-org-backward-up-item-visit
+          (alb-org-backward-up-item-pos
            curr-pos (org-list-get-parent item-pos struct parents)
            struct parents)))))
 
 
-(defun alb-org-backward-up-text-visit (curr-pos entry-struct)
+(defun alb-org-backward-up-text-pos (curr-pos entry-struct)
   "Find CURR-POS in text following a heading and move backward and up
 
 Let CURR-POS be the position of point, and ENTRY-STRUCT be the
@@ -267,67 +301,61 @@ alist returned by `alb-org-entry-structure`.  Recur on
 ENTRY-STRUCT searching for a containing preamble or list.  In
 turn, visit the bullet of each enclosing list item, and the first
 non-whitespace character of the immediately preceeding preamble
-until a visible character is located.  Return the visibility of
-the final position.  This function customises Org-Mode."
+until a visible character is located.  If found, return the
+position.  Do not move point.  This function customises
+Org-Mode."
   (if entry-struct
       (let ((text-pos (car (car entry-struct)))
             (struct (cdr (car entry-struct))))
-        (if struct
-            (let ((star-pos (save-excursion (goto-char
-                                             (org-list-get-top-point struct))
-                                            (looking-at "[[:space:]]*")
-                                            (match-end 0)))
-                  (last-pos (org-list-get-bottom-point struct)))
-              (cond
-               ((and (< text-pos star-pos)
-                     (< text-pos curr-pos)
-                     (<= curr-pos star-pos))
-                (goto-char text-pos)
-                (not (outline-invisible-p)))
-               ((and (< star-pos curr-pos)
-                     (<= curr-pos last-pos))
-                (or (alb-org-backward-up-item-visit curr-pos (org-in-item-p)
-                                                    struct
-                                                    (org-list-parents-alist
-                                                     struct))
-                    (and (< text-pos star-pos)
-                         (goto-char text-pos)
-                         (not (outline-invisible-p)))))
-               ((< last-pos curr-pos)
-                (alb-org-backward-up-text-visit curr-pos (cdr entry-struct)))))
-          (and (< text-pos curr-pos)
-               (goto-char text-pos)
-               (not (outline-invisible-p)))))))
+        (cond
+         (struct
+          (let ((star-pos (save-excursion (goto-char
+                                           (org-list-get-top-point struct))
+                                          (looking-at "[[:space:]]*")
+                                          (match-end 0)))
+                (last-pos (org-list-get-bottom-point struct)))
+            (cond
+             ((and (< text-pos star-pos)
+                   (< text-pos curr-pos)
+                   (<= curr-pos star-pos))
+              (alb-org-visible-pos text-pos))
+             ((and (< star-pos curr-pos)
+                   (<= curr-pos last-pos))
+              (or (alb-org-backward-up-item-pos curr-pos (org-in-item-p) struct
+                                                (org-list-parents-alist struct))
+                  (and (< text-pos star-pos)
+                       (alb-org-visible-pos text-pos))))
+             ((< last-pos curr-pos)
+              (alb-org-backward-up-text-pos curr-pos (cdr entry-struct))))))
+         ((< text-pos curr-pos)
+          (alb-org-visible-pos POS)
+          (save-excursion (goto-char text-pos)
+                          (and (not (outline-invisible-p))
+                               (point))))))))
 
 
-(defun alb-org-backward-up-head-visit (curr-pos head-pos)
+(defun alb-org-backward-up-head-pos (curr-pos head-pos)
   "Move backward out one level of Org-Mode structure
 
 Let CURR-POS be the position of point, and HEAD-POS be the start
 of the preceding heading.  In turn, visit the bullet of each
 enclosing list item, the first non-whitespace character of the
 immediately preceeding preamble, and the first character in the
-heading until a visible character is located.  Return the
-visibility of the final position. This function customises
+heading until a visible character is located.  If found, return
+the position.  Do not move point.  This function customises
 Org-Mode."
   (let ((text-pos (save-excursion (goto-char head-pos)
-                                  (looking-at alb-re-org-heading)
-                                  (goto-char (match-end 0))
-                                  (looking-at alb-re-org-metadata)
-                                  (goto-char (match-end 0))
-                                  (looking-at "[[:space:]]*")
+                                  (looking-at alb-re-org-heading-and-ws)
                                   (match-end 0)))
         (last-pos (save-excursion (goto-char head-pos)
                                   (if (outline-next-heading)
                                       (point)
                                     (point-max)))))
     (if (<= curr-pos text-pos)
-        (and (goto-char head-pos)
-             (not (outline-invisible-p)))
-      (or (alb-org-backward-up-text-visit curr-pos (alb-org-entry-structure
-                                                    text-pos last-pos))
-          (goto-char head-pos)
-          (not (outline-invisible-p))))))
+        (alb-org-visible-pos head-pos)
+      (or (alb-org-backward-up-text-pos curr-pos (alb-org-entry-structure
+                                                  text-pos last-pos))
+          (alb-org-visible-pos head-pos)))))
 
 
 (defun alb-org-backward-up-structure ()
@@ -348,11 +376,13 @@ customises Org-Mode."
                                   (point))))
     (if (= curr-pos head-pos)
         (org-up-heading-safe)
-      (or (alb-org-backward-up-head-visit curr-pos head-pos)
-          (org-up-heading-safe)))))
+      (let ((next-pos (alb-org-backward-up-head-pos curr-pos head-pos)))
+        (if next-pos
+            (goto-char next-pos)
+          (org-up-heading-safe))))))
 
 
-(defun alb-org-down-item-visit (curr-pos item-pos struct parents)
+(defun alb-org-down-item-pos (curr-pos item-pos struct parents)
   "Find CURR-POS in a list and move down
 
 XXX Let CURR-POS be the position of point, ITEM-POS be the start
@@ -367,14 +397,14 @@ Otherwise, return nil.  This function customises Org-Mode."
                                       (looking-at "[[:space:]]*")
                                       (match-end 0))))
         (if (< curr-pos star-pos)
-            (progn (goto-char star-pos)
-                   (not (outline-invisible-p)))
-          (alb-org-down-item-visit
-           curr-pos (car (org-list-get-children item-pos struct parents))
-           struct parents)))))
+            (alb-org-visible-pos star-pos)
+          (alb-org-down-item-pos curr-pos
+                                 (car (org-list-get-children item-pos struct
+                                                             parents))
+                                 struct parents)))))
 
 
-(defun alb-org-down-text-visit (curr-pos entry-struct)
+(defun alb-org-down-text-pos (curr-pos entry-struct)
   "Find CURR-POS in text following a heading and move down
 
 XXX Let CURR-POS be the position of point, and ENTRY-STRUCT be the
@@ -389,39 +419,41 @@ the final position.  This function customises Org-Mode."
             (struct (cdr (car entry-struct))))
         (cond
          ((< curr-pos text-pos)
-          (goto-char text-pos)
-          (not (outline-invisible-p)))
+          (alb-org-visible-pos text-pos))
          (struct
-          (let ((star-pos (save-excursion (goto-char
-                                           (org-list-get-top-point struct))
-                                          (looking-at "[[:space:]]*")
-                                          (match-end 0)))
+          (let ((star-pos (save-excursion
+                            (goto-char (org-list-get-top-point struct))
+                            (looking-at "[[:space:]]*")
+                            (match-end 0)))
                 (last-pos (org-list-get-bottom-point struct)))
             (cond
              ((< curr-pos star-pos)
-              (goto-char star-pos)
-              (not (outline-invisible-p)))
+              (alb-org-visible-pos star-pos))
+             ((< curr-pos last-pos)
+              (alb-org-down-item-pos curr-pos (org-in-item-p) struct
+                                     (org-list-parents-alist struct)))
              (t
-              (alb-org-down-item-visit curr-pos (org-in-item-p) struct
-                                       (org-list-parents-alist struct))))))))))
+              (alb-org-down-text-pos curr-pos (cdr entry-struct))))))))))
 
 
-(defun alb-org-down-head-visit (curr-pos head-pos)
+(defun alb-org-down-head-pos (curr-pos head-pos)
   "Move down one level of Org-Mode structure
 
-XXX Let CURR-POS be the position of point, and HEAD-POS be the
-start of the preceding heading.  In turn, visit the bullet of
-each enclosing list item, the first non-whitespace character of
-the immediately preceeding preamble, and the first character in
-the heading until a visible character is located.  Return the
-visibility of the final position. This function customises
-Org-Mode."
+XXX Returns true if able to find a spot.  Leaves point at the
+spot and returns the position, or leaves poit unmoved and returns
+nil.  Let HEAD-POS be the start of the preceding heading.  In
+turn, visit the bullet of each enclosing list item, the first
+non-whitespace character of the immediately preceeding preamble,
+and the first character in the heading until a visible character
+is located.  Return the visibility of the final position. This
+function customises Org-Mode."
   (let ((curr-level (org-current-level)))
-    (goto-char head-pos)
-    (outline-next-visible-heading 1)
-    (and (not (outline-invisible-p))
-         (outline-on-heading-p)
-         (< curr-level (org-current-level)))))
+    (save-excursion
+      (outline-next-visible-heading 1)
+      (and (outline-on-heading-p)
+           (< curr-level (org-current-level))
+           (not (outline-invisible-p))
+           (point)))))
 
 
 (defun alb-org-down-structure ()
@@ -430,30 +462,34 @@ Org-Mode."
 This function is intended to be the analogue of `down-list` for
 the case of navigating Org-Mode structures.  It navigates
 headings and plain lists, with text outside of a list being a
-special case.  Each sequence of paragraphs outside a list is
-treated as a list item of a virtual enclosing list.  Hence,
-starting from a heading, successive calls visit the preamble
-preceeding the list, before visiting nested list items.  This
-function customises Org-Mode."
+special case.  Each sequence of paragraphs preceeding a top-level
+list in the entry is treated as a list item of a virtual
+enclosing list.  Hence, starting from a heading, successive calls
+visit the preamble preceeding the list, before visiting nested
+list items.  This function customises Org-Mode."
   (interactive)
   (let* ((curr-pos (point))
-         (head-pos (save-excursion (org-back-to-heading)
+         (head-pos (save-excursion (outline-back-to-heading)
                                    (point)))
          (text-pos (save-excursion (goto-char head-pos)
-                                   (looking-at alb-re-org-heading)
-                                   (goto-char (match-end 0))
-                                   (looking-at alb-re-org-metadata)
-                                   (goto-char (match-end 0))
-                                   (looking-at "[[:space:]]*")
+                                   (looking-at alb-re-org-heading-and-ws)
                                    (match-end 0)))
          (last-pos (save-excursion (goto-char head-pos)
                                    (if (outline-next-heading)
                                        (point)
-                                     (point-max)))))
-    (or (alb-org-down-text-visit curr-pos (alb-org-entry-structure
-                                           text-pos last-pos))
-        (alb-org-down-head-visit curr-pos head-pos)
-        (goto-char curr-pos))))
+                                     (point-max))))
+         (entry-struct (alb-org-entry-structure text-pos last-pos))
+         (next-pos (cond ((outline-invisible-p)
+                          (alb-org-down-head-pos curr-pos head-pos))
+                         ((= text-pos last-pos)
+                          (alb-org-down-head-pos curr-pos head-pos))
+                         ((< curr-pos text-pos)
+                          (or (alb-org-down-text-pos curr-pos entry-struct)
+                              (alb-org-down-head-pos curr-pos head-pos)))
+                         (t
+                          (alb-org-down-text-pos curr-pos entry-struct)))))
+    (if next-pos
+        (goto-char next-pos))))
 
 
 (defun alb-org-backward-preamble-visit (curr-pos entry-struct)
@@ -470,7 +506,7 @@ XXX  This function customises Org-Mode."
             (alb-org-backward-preamble-visit curr-pos tail-entry-struct)))
       (if (< prev-text-pos curr-pos)
           (goto-char prev-text-pos)
-        (org-back-to-heading)))))
+        (outline-back-to-heading)))))
 
 
 (defun alb-org-backward-item-visit (curr-pos item-pos entry-struct)
@@ -493,7 +529,7 @@ XXX  This function customises Org-Mode."
                 (looking-at "[[:space:]]*")
                 (goto-char (match-end 0)))))
           (alb-org-backward-item-visit curr-pos item-pos (cdr entry-struct))))
-    (org-back-to-heading)))
+    (outline-back-to-heading)))
 
 
 (defun alb-org-backward-structure ()
@@ -507,9 +543,9 @@ treated as a list item of a virtual enclosing list.  This
 function customises Org-Mode."
   (interactive)
   (if (outline-invisible-p)
-      (org-back-to-heading)
+      (outline-back-to-heading)
     (let* ((curr-pos (point))
-           (head-pos (save-excursion (org-back-to-heading)
+           (head-pos (save-excursion (outline-back-to-heading)
                                      (point)))
            (text-pos (save-excursion (goto-char head-pos)
                                      (looking-at alb-re-org-heading)
@@ -582,7 +618,7 @@ function customises Org-Mode."
   (if (outline-invisible-p)
       (outline-next-visible-heading 1)
     (let* ((curr-pos (point))
-           (head-pos (save-excursion (org-back-to-heading)
+           (head-pos (save-excursion (outline-back-to-heading)
                                      (point)))
            (eofh-pos (save-excursion (goto-char head-pos)
                                      (looking-at alb-re-org-heading)
@@ -599,9 +635,9 @@ function customises Org-Mode."
         (goto-char text-pos))
        (t
         (let* ((last-pos (save-excursion (goto-char head-pos)
-                                     (if (outline-next-heading)
-                                         (point)
-                                       (point-max))))
+                                         (if (outline-next-heading)
+                                             (point)
+                                           (point-max))))
                (item-pos (org-in-item-p))
                (entry-struct (alb-org-entry-structure text-pos last-pos)))
           (if item-pos
@@ -747,7 +783,7 @@ line, and places the cursor at the end of the second blank line."
   (interactive)
   (if (org-before-first-heading-p)
       (outline-next-heading)
-    (org-back-to-heading))
+    (outline-back-to-heading))
   (org-show-entry)
   (let* ((succ-pos (save-excursion      ; Start of successor headline
                      (outline-next-heading)
@@ -778,7 +814,7 @@ line, and places the cursor at the end of the second blank line."
   (interactive)
   (let ((stars (progn (if (org-before-first-heading-p)
                           (outline-next-heading)
-                        (org-back-to-heading))
+                        (outline-back-to-heading))
                       (looking-at outline-regexp)
                       (match-string-no-properties 0))))
     (newline 2)
@@ -791,7 +827,7 @@ line, and places the cursor at the end of the second blank line."
   (interactive)
   (let ((stars (progn (if (org-before-first-heading-p)
                           (outline-next-heading)
-                        (org-back-to-heading))
+                        (outline-back-to-heading))
                       (looking-at outline-regexp)
                       (match-string-no-properties 0))))
     (org-end-of-subtree)
@@ -824,7 +860,7 @@ update, removes it. Repairs the positions of the tags."
   (save-excursion
     (if (org-before-first-heading-p)
         (outline-next-heading)
-      (org-back-to-heading))
+      (outline-back-to-heading))
     (let* ((old-title (progn
                         (looking-at alb-re-org-heading)
                         (org-trim (match-string-no-properties 4))))
@@ -912,7 +948,7 @@ and elapsed time easier to follow in column view.
              (concat (match-string 1 value) " " (match-string 4 value))))
         ((string= column-title "Label")
          (if (string-match alb-re-org-project-filename value)
-             (match-string 3 value)))
+             (match-string 2 value)))
         ((string= column-title "Media")
          (concat (if (string-match-p ":on_email:" value) "@")
                  (if (string-match-p ":on_paper:" value) "#")
