@@ -612,36 +612,78 @@ customises Org-Mode."
         (goto-char next-pos))))
 
 
-(defun alb-org-forward-preamble-visit (curr-pos entry-struct)
-  "Find CURR-POS in a preamble and move to the next preamble
+(defun alb-org-forward-item-pos (curr-pos item-pos struct prevs parents)
+  "Find first visible successor of CURR-POS in STRUCT
 
-XXX  This function customises Org-Mode."
+XXX!  This function customises Org-Mode."
+  (if item-pos
+      (let* ((star-pos (alb-org-star-pos item-pos))
+             (parent-item-pos (org-list-get-parent item-pos struct parents))
+             (next-item-pos (or (org-list-get-next-item item-pos struct prevs)
+                                (and parent-item-pos
+                                     (org-list-get-next-item parent-item-pos
+                                                             struct prevs)))))
+        (or (and (< curr-pos star-pos)
+                 (alb-org-visible-pos star-pos))
+            (alb-org-forward-item-pos curr-pos next-item-pos
+                                      struct prevs parents)))))
+
+
+(defun alb-org-forward-text-pos (curr-pos entry-struct)
+  "Find first visible successor of CURR-POS in ENTRY-STRUCT
+
+XXX!  This function customises Org-Mode."
   (if entry-struct
-      (let ((text-pos (caar entry-struct)))
-        (if (< curr-pos text-pos)
-            (goto-char text-pos)
-          (alb-org-forward-preamble-visit curr-pos (cdr entry-struct))))
-    (outline-next-visible-heading 1)))
+      (let ((text-pos (caar entry-struct))
+            (struct (cdar entry-struct)))
+        (cond
+         ((< curr-pos text-pos)
+          (alb-org-visible-pos text-pos))
+         (struct
+          (let ((star-pos (alb-org-star-pos (org-list-get-top-point struct)))
+                (last-pos (org-list-get-bottom-point struct)))
+            (cond
+             ((< curr-pos star-pos )
+              (or (alb-org-visible-pos star-pos)
+                  (alb-org-forward-text-pos curr-pos (cdr entry-struct))))
+             ((< curr-pos last-pos)
+              (or (alb-org-forward-item-pos curr-pos (org-in-item-p) struct
+                                            (org-list-prevs-alist struct)
+                                            (org-list-parents-alist struct))
+                  (alb-org-forward-text-pos curr-pos (cdr entry-struct))))
+             (t
+              (alb-org-forward-text-pos curr-pos (cdr entry-struct))))))))))
 
 
-(defun alb-org-forward-item-visit (curr-pos item-pos entry-struct)
-  "Find CURR-POS in a list and move to the next item
+(defun alb-org-forward-head-pos (curr-pos head-pos)
+  "Find first visible successor of CURR-POS
 
-XXX  This function customises Org-Mode."
-  (if entry-struct
-      (let ((struct (cdar entry-struct)))
-        (if (assoc item-pos struct)
-            (let* ((prevs (org-list-prevs-alist struct))
-                   (star-pos (alb-org-star-pos item-pos))
-                   (next-pos (org-list-get-next-item item-pos struct prevs)))
-              (cond
-               ((< curr-pos star-pos )
-                (goto-char star-pos))
-               (next-pos
-                (goto-char next-pos)
-                (looking-at "[[:space:]]*")
-                (goto-char (match-end 0)))))
-          (alb-org-forward-item-visit curr-pos item-pos (cdr entry-struct))))))
+XXX!  Let CURR-POS be the position of point, and HEAD-POS be the
+start of the enclosing heading.  Assume HEAD-POS < CURR-POS.  In
+turn, visit the bullet of each enclosing list item, the first
+non-whitespace character of the immediately preceeding preamble,
+and the first character in the heading until a visible character
+is located.  If found, return the position.  Do not move point.
+This function customises Org-Mode."
+  (let ((text-pos (alb-org-text-pos head-pos))
+        (past-pos (alb-org-past-pos head-pos)))
+    (if (< curr-pos text-pos)
+        (alb-org-visible-pos text-pos)
+      (alb-org-forward-text-pos curr-pos (alb-org-entry-structure
+                                          text-pos past-pos)))))
+
+
+(defun alb-org-forward-heading-pos (head-pos)
+  "Find first visible successor heading of HEAD-POS
+
+Let HEAD-POS be the position of the enclosing heading.  Search
+forward for a visible successor heading.  If found, return the
+position.  Do not move point.  This function customises
+Org-Mode."
+  (save-excursion (goto-char head-pos)
+                  (org-forward-same-level 1)
+                  (and (outline-on-heading-p)
+                       (point))))
 
 
 (defun alb-org-forward-structure ()
@@ -654,26 +696,14 @@ special case.  Text preceeding a list is treated as a list
 item (a preamble) of a virtual enclosing list.  This function
 customises Org-Mode."
   (interactive)
-  (if (outline-invisible-p)
-      (alb-org-forward-up-structure))
   (let* ((curr-pos (point))
          (head-pos (alb-org-head-pos curr-pos))
-         (eofh-pos (save-excursion (goto-char head-pos)
-                                   (looking-at alb-re-org-heading)
-                                   (match-end 0)))
-         (text-pos (alb-org-text-pos head-pos)))
-    (cond
-     ((< curr-pos eofh-pos)
-      (org-forward-same-level 1))
-     ((< curr-pos text-pos)
-      (goto-char text-pos))
-     (t
-      (let* ((past-pos (alb-org-past-pos head-pos))
-             (item-pos (org-in-item-p))
-             (entry-struct (alb-org-entry-structure text-pos past-pos)))
-        (if item-pos
-            (alb-org-forward-item-visit curr-pos item-pos entry-struct)
-          (alb-org-forward-preamble-visit curr-pos entry-struct)))))))
+         (next-pos (if (= curr-pos head-pos)
+                       (alb-org-forward-heading-pos head-pos)
+                     (or (alb-org-forward-head-pos curr-pos head-pos)
+                         (alb-org-forward-heading-pos head-pos)))))
+    (if next-pos
+      (goto-char next-pos))))
 
 
 (defun alb-org-context-activity (tags)
