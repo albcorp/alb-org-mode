@@ -626,6 +626,10 @@ customises Org-Mode."
 (defun alb-org-forward-item-pos (curr-pos item-pos struct prevs parents)
   "Find first visible successor of CURR-POS in STRUCT
 
+XXX! This is still not quite right.  Consider the case where
+point is at the last item in a last item in a non-last item.  A
+recursion is required to find the successor item in such a case.
+
 Let CURR-POS be the position of point, ITEM-POS be the start of
 an enclosing list item, STRUCT be the enclosing list structure as
 returned by `org-list-struct`, PREVS be the alist returned by
