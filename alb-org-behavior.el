@@ -714,6 +714,12 @@ Org-Mode."
 (defun alb-org-forward-structure ()
   "Move forward in the Org-Mode structure
 
+XXX! This is still not quite right.  Consider the case where
+point is at the last item in a list, the enclosing heading is
+level 3, and the next heading is level 5.  Regardless of the
+depth of the next heading, the user would expect point to be
+advanced to the next heading.
+
 This function is intended to be the analogue of `forward-sexp`
 for the case of navigating Org-Mode structures.  It navigates
 headings and plain lists, with text outside of a list being a
