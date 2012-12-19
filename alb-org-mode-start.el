@@ -159,7 +159,7 @@
     (define-key org-mode-map "\M-e" nil)
 
     ;; Global
-    (define-key org-mode-map "\C-cS" 'org-save-all-org-buffers)
+    (define-key org-mode-map "\C-cs" 'org-save-all-org-buffers)
     (define-key org-mode-map "\C-c\C-c" 'org-ctrl-c-ctrl-c)
 
     ;; Outline visibility
@@ -169,18 +169,21 @@
     (define-key org-mode-map "\C-cC" 'org-columns)
 
     ;; Outline navigation
-    (define-key org-mode-map "\C-\M-u" 'alb-org-backward-up-structure)
+    (define-key org-mode-map "\C-\M-u" 'alb-org-up-structure)
     (define-key org-mode-map "\C-\M-d" 'alb-org-down-structure)
     (define-key org-mode-map "\C-\M-b" 'alb-org-backward-structure)
     (define-key org-mode-map "\C-\M-f" 'alb-org-forward-structure)
-    (define-key org-mode-map "\C-\M-p" 'outline-previous-visible-heading)
-    (define-key org-mode-map "\C-\M-n" 'outline-next-visible-heading)
+    (define-key org-mode-map "\C-\M-p" 'alb-org-prev-structure)
+    (define-key org-mode-map "\C-\M-n" 'alb-org-next-structure)
+    (define-key org-mode-map "\C-cu" 'alb-org-up-heading)
+    (define-key org-mode-map "\C-cd" 'alb-org-down-heading)
+    (define-key org-mode-map "\C-cb" 'org-backward-same-level)
+    (define-key org-mode-map "\C-cf" 'org-forward-same-level)
     (define-key org-mode-map "\C-cp" 'outline-previous-visible-heading)
     (define-key org-mode-map "\C-cn" 'outline-next-visible-heading)
     (define-key org-mode-map "\C-a" 'org-beginning-of-line)
     (define-key org-mode-map "\C-e" 'org-end-of-line)
     (define-key org-mode-map "\C-co" 'org-open-at-point)
-    (define-key org-mode-map "\C-cb" 'org-mark-ring-goto)
 
     ;; Outline structure editing
     (define-key org-mode-map "\C-c." 'outline-mark-subtree)
@@ -199,9 +202,9 @@
     ;; Meta-data editing
     (define-key org-mode-map "\C-ct" 'org-todo)
     (define-key org-mode-map "\C-c:" 'org-set-tags-command)
-    (define-key org-mode-map "\C-cd" 'org-deadline)
-    (define-key org-mode-map "\C-cs" 'org-schedule)
-    (define-key org-mode-map "\C-ce" 'org-set-effort)
+    (define-key org-mode-map "\C-cD" 'org-deadline)
+    (define-key org-mode-map "\C-cS" 'org-schedule)
+    (define-key org-mode-map "\C-cE" 'org-set-effort)
     (define-key org-mode-map "\C-c#" 'org-update-statistics-cookies)
 
     ;; Agenda views
@@ -231,13 +234,7 @@
     (setq org-speed-commands-default
           '(("Global")
             ("?" . org-speed-command-help)
-            ("S" . org-save-all-org-buffers)
-            ("Outline navigation")
-            ("u" . (org-speed-move-safe 'outline-up-heading))
-            ("p" . (org-speed-move-safe 'outline-previous-visible-heading))
-            ("n" . (org-speed-move-safe 'outline-next-visible-heading))
-            ("b" . (org-speed-move-safe 'org-backward-same-level))
-            ("f" . (org-speed-move-safe 'org-forward-same-level))
+            ("s" . org-save-all-org-buffers)
             ("Outline visibility")
             ("1" . (progn (org-shifttab 1) (outline-back-to-heading)))
             ("2" . (progn (org-shifttab 2) (outline-back-to-heading)))
@@ -248,6 +245,13 @@
             (">" . org-narrow-to-subtree)
             ("<" . alb-org-widen)
             ("C" . org-columns)
+            ("Outline navigation")
+            ("u" . (org-speed-move-safe 'alb-org-up-heading))
+            ("d" . (org-speed-move-safe 'alb-org-down-heading))
+            ("b" . (org-speed-move-safe 'org-backward-same-level))
+            ("f" . (org-speed-move-safe 'org-forward-same-level))
+            ("p" . (org-speed-move-safe 'outline-previous-visible-heading))
+            ("n" . (org-speed-move-safe 'outline-next-visible-heading))
             ("Outline structure editing")
             ("." . outline-mark-subtree)
             ("B" . org-move-subtree-up)
@@ -269,9 +273,9 @@
             ("+" . org-priority-up)
             ("-" . org-priority-down)
             (":" . org-set-tags-command)
-            ("d" . org-deadline)
-            ("s" . org-schedule)
-            ("e" . org-set-effort)
+            ("D" . org-deadline)
+            ("S" . org-schedule)
+            ("E" . org-set-effort)
             ("#" . alb-org-update-headline-statistics)
             ("l" . org-store-link)
             ("Agenda views")
