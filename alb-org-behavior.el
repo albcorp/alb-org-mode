@@ -1,7 +1,7 @@
 ;;;
 ;;; AlbOrgMode/alb-org-behavior.el
 ;;;
-;;;     Copyright (C) 2010-2012 Andrew Lincoln Burrow
+;;;     Copyright (C) 2010-2013 Andrew Lincoln Burrow
 ;;;
 ;;;     This library is free software; you can redistribute it and/or
 ;;;     modify it under the terms of the GNU General Public License as
@@ -596,7 +596,7 @@ backward for a visible predecessor heading.  If found, return the
 position.  Do not move point.  This function customises
 Org-Mode."
   (save-excursion (goto-char head-pos)
-                  (org-backward-same-level 1)
+                  (org-backward-heading-same-level 1)
                   (and (outline-on-heading-p)
                        (point))))
 
@@ -708,7 +708,7 @@ forward for a visible successor heading.  If found, return the
 position.  Do not move point.  This function customises
 Org-Mode."
   (save-excursion (goto-char head-pos)
-                  (org-forward-same-level 1)
+                  (org-forward-heading-same-level 1)
                   (and (outline-on-heading-p)
                        (point))))
 
