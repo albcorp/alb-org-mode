@@ -1,7 +1,7 @@
 ;;;
 ;;; AlbOrgMode/alb-org-mode-start.el
 ;;;
-;;;     Copyright (C) 2010-2012 Andrew Lincoln Burrow
+;;;     Copyright (C) 2010-2013 Andrew Lincoln Burrow
 ;;;
 ;;;     This library is free software; you can redistribute it and/or
 ;;;     modify it under the terms of the GNU General Public License as
@@ -44,6 +44,22 @@
 
 (setq auto-mode-alist
       (cons '("\\.org$" . org-mode) auto-mode-alist))
+
+(defun alb-org-publish ()
+  "Batch publish Org-Mode files and select agendas
+
+This is designed to be called from the shell as follows.
+
+    emacs \
+        --batch \
+        --load=${HOME}/.emacs \
+        --funcall=alb-org-publish \
+        --funcall=kill-emacs
+"
+  (require 'org-publish)
+  (org-publish "default")
+  (org-store-agenda-views))
+
 
 
 ;;; *** DEFERRED CONFIGURATION ************************************************
@@ -287,8 +303,6 @@
     ;; Fix the clock values on entries
     (org-clock-sum)))
 
-
-
 
 ;;; Local Variables:
 ;;; mode: emacs-lisp
