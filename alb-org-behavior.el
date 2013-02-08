@@ -976,53 +976,17 @@ function customises Org-Mode."
         (goto-char next-pos))))
 
 
-(defun alb-org-context-activity (tags)
-  "Return the activity context embedded in the TAGS string
+(defun alb-org-agenda-cmp (a b)
+  "Compare a pair of agenda entries after formatting
 
-This function customises Org-Mode."
-  (apply 'concat (mapcar (lambda (s) (if (string-match "^act_.*" s)
-                                         (match-string 0 s)
-                                       ""))
-                         (split-string tags ":"))))
-
-
-(defun alb-org-context-agenda (tags)
-  "Return the agenda context embedded in the TAGS string
-
-This function customises Org-Mode."
-  (apply 'concat (mapcar (lambda (s) (if (string-match "^@.*" s)
-                                         (match-string 0 s)
-                                       ""))
-                         (split-string tags ":"))))
-
-
-(defun alb-org-agenda-cmp-context-activity (a b)
-  "Compare the agenda entries A and B based on the activity context
-
-This function customises Org-Mode."
-  (let ((a-tag (if (string-match alb-re-org-heading a)
-                   (alb-org-context-activity (match-string 5 a))
-                 ""))
-        (b-tag (if (string-match alb-re-org-heading b)
-                   (alb-org-context-activity (match-string 5 b))
-                 "")))
-    (cond ((string< a-tag b-tag) -1)
-          ((string< b-tag a-tag) 1))))
-
-
-(defun alb-org-agenda-cmp-context-agenda (a b)
-  "Compare the agenda entries A and B based on the agenda context
-
-This function customises Org-Mode."
-  (let ((a-tag (if (string-match alb-re-org-heading a)
-                   (alb-org-context-agenda (match-string 5 a))
-                 ""))
-        (b-tag (if (string-match alb-re-org-heading b)
-                   (alb-org-context-agenda (match-string 5 b))
-                 "")))
-    (cond ((string< a-tag b-tag) -1)
-          ((string< b-tag a-tag) 1))))
-
+This solves a strange oversight of Org-Mode: it gives access to
+the formatted agenda item, but does not give a simple means to
+compare on the formatted entry.  This function customises
+Org-Mode."
+  (cond ((string< a b)
+         -1)
+        ((string< b a)
+         1)))
 
 (defun alb-org-agenda-prefix-project-tasks ()
   "Construct a prefix for each entry in the project tasks agenda
@@ -1035,6 +999,16 @@ This function customises Org-Mode."
            "\n")
           ((= level 5)
            "[ ] "))))
+
+
+(defun alb-org-agenda-prefix-discussion-tasks ()
+  "Construct a prefix for each entry in the discussion tasks agenda
+
+This function customises Org-Mode."
+  (let* ((props (org-entry-properties))
+         (tags (cdr (assoc "TAGS" props))))
+    (if (string-match ":\\(@[^:]*\\):" tags)
+        (match-string-no-properties 1 tags))))
 
 
 (defun alb-org-sort-rank (properties)
