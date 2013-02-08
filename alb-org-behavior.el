@@ -1024,6 +1024,19 @@ This function customises Org-Mode."
           ((string< b-tag a-tag) 1))))
 
 
+(defun alb-org-agenda-prefix-project-tasks ()
+  "Construct a prefix for each entry in the project tasks agenda
+
+This function customises Org-Mode."
+  (let ((level (org-current-level)))
+    (cond ((= level 1)
+           "\n\n")
+          ((= level 3)
+           "\n")
+          ((= level 5)
+           "[ ] "))))
+
+
 (defun alb-org-sort-rank (properties)
   "Return the rank of a todo item from its PROPERTIES
 
