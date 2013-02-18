@@ -1,49 +1,56 @@
-;;;
-;;; AlbOrgMode/alb-org-mode-start.el
-;;;
-;;;     Copyright (C) 2010-2013 Andrew Lincoln Burrow
-;;;
-;;;     This library is free software; you can redistribute it and/or
-;;;     modify it under the terms of the GNU General Public License as
-;;;     published by the Free Software Foundation; either version 2 of
-;;;     the License, or (at your option) any later version.
-;;;
-;;;     This library is distributed in the hope that it will be useful,
-;;;     but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;;     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;;     GNU General Public License for more details.
-;;;
-;;;     You should have received a copy of the GNU General Public
-;;;     License along with this library; if not, write to the Free
-;;;     Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-;;;     MA 02111-1307, USA.
-;;;
-;;;   - Site start code for basic albcorp Org-Mode setup.
-;;;
+;;
+;; AlbOrgMode/alb-org-mode-start.el
+;;
+;;     Copyright (C) 2010-2013 Andrew Lincoln Burrow
+;;
+;;     This library is free software; you can redistribute it and/or
+;;     modify it under the terms of the GNU General Public License as
+;;     published by the Free Software Foundation; either version 2 of
+;;     the License, or (at your option) any later version.
+;;
+;;     This library is distributed in the hope that it will be useful,
+;;     but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;     GNU General Public License for more details.
+;;
+;;     You should have received a copy of the GNU General Public
+;;     License along with this library; if not, write to the Free
+;;     Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+;;     MA 02111-1307, USA.
+;;
+;;   - Site start code for basic albcorp Org-Mode setup
+;;
 
-
-
-;;; *** AMMENDED LOAD PATH ****************************************************
-
+;;
+;;
+;; AMMENDED LOAD PATH
+;; ---------------------------------------------------------------------
+;;
 
 (setq load-path
       (cons (directory-file-name (file-name-directory load-file-name))
             load-path))
 
+;;
+;;
+;; REQUIRED FEATURES
+;; ---------------------------------------------------------------------
+;;
 
+;;
+;;
+;; IMMEDIATE CONFIGURATION
+;; ---------------------------------------------------------------------
+;;
 
-;;; *** REQUIRED FEATURES *****************************************************
-
-
-
-;;; *** IMMEDIATE CONFIGURATION ***********************************************
-
-;;;
-;;; Auto Modes
-;;;
+;;
+;; Auto Modes
 
 (setq auto-mode-alist
       (cons '("\\.org$" . org-mode) auto-mode-alist))
+
+;;
+;; Batch Functions
 
 (defun alb-org-publish ()
   "Batch publish Org-Mode files and select agendas
@@ -60,9 +67,10 @@ This is designed to be called from the shell as follows.
   (org-publish "default")
   (org-store-agenda-views))
 
-
-
-;;; *** DEFERRED CONFIGURATION ************************************************
+;;
+;;
+;; DEFERRED CONFIGURATION
+;;
 
 (eval-after-load 'org
  '(progn
@@ -229,7 +237,6 @@ This is designed to be called from the shell as follows.
 
     ;; Content editing
     (define-key org-mode-map "\C-cL" 'org-insert-link)
-    (define-key org-mode-map "\C-c@" 'alb-org-insert-gmail-link-text)
     (define-key org-mode-map "\C-c!" 'org-time-stamp-inactive)
     (define-key org-mode-map [(shift up)] 'org-timestamp-up)
     (define-key org-mode-map [(shift down)] 'org-timestamp-down)
@@ -296,14 +303,11 @@ This is designed to be called from the shell as follows.
             ("l" . org-store-link)
             ("Agenda views")
             ("v" . org-agenda)
-            ("/" . org-sparse-tree)
-            ("Content editing")
-            ("@" . alb-org-insert-gmail-link-item)))
+            ("/" . org-sparse-tree)))
 
     ;; Fix the clock values on entries
     (org-clock-sum)))
 
-
-;;; Local Variables:
-;;; mode: emacs-lisp
-;;; End:
+;; Local Variables:
+;; mode: emacs-lisp
+;; End:

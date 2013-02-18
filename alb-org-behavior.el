@@ -1,44 +1,56 @@
-;;;
-;;; AlbOrgMode/alb-org-behavior.el
-;;;
-;;;     Copyright (C) 2010-2013 Andrew Lincoln Burrow
-;;;
-;;;     This library is free software; you can redistribute it and/or
-;;;     modify it under the terms of the GNU General Public License as
-;;;     published by the Free Software Foundation; either version 2 of
-;;;     the License, or (at your option) any later version.
-;;;
-;;;     This library is distributed in the hope that it will be useful,
-;;;     but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;;     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;;     GNU General Public License for more details.
-;;;
-;;;     You should have received a copy of the GNU General Public
-;;;     License along with this library; if not, write to the Free
-;;;     Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-;;;     MA 02111-1307, USA.
-;;;
-;;;   - Functions to configure Org-Mode.
-;;;
+;;
+;; AlbOrgMode/alb-org-behavior.el
+;;
+;;     Copyright (C) 2010-2013 Andrew Lincoln Burrow
+;;
+;;     This library is free software; you can redistribute it and/or
+;;     modify it under the terms of the GNU General Public License as
+;;     published by the Free Software Foundation; either version 2 of
+;;     the License, or (at your option) any later version.
+;;
+;;     This library is distributed in the hope that it will be useful,
+;;     but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;     GNU General Public License for more details.
+;;
+;;     You should have received a copy of the GNU General Public
+;;     License along with this library; if not, write to the Free
+;;     Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+;;     MA 02111-1307, USA.
+;;
+;;   - Functions to configure Org-Mode
+;;
 
-
-
-;;; *** PROVIDED FEATURE ******************************************************
-
+;;
+;;
+;; PROVIDED FEATURE
+;; ---------------------------------------------------------------------
+;;
 
 (provide 'alb-org-behavior)
 
-
-
-;;; *** REQUIRED FEATURES *****************************************************
-
+;;
+;;
+;; REQUIRED FEATURES
+;; ---------------------------------------------------------------------
+;;
 
 (require 'org)
 
+;;
+;;
+;; CONSTANT DECLARATIONS
+;; ---------------------------------------------------------------------
+;;
+(defconst alb-org-heading-incoming
+  "00-Incoming"
+  "Title of the Org-Mode heading designated as the tree
+containing incoming tasks.")
 
-
-;;; *** CONSTANT DECLARATIONS *************************************************
-
+(defconst alb-org-heading-someday
+  "ZZ-Someday"
+  "Title of the Org-Mode heading designated as the tree
+containing someday/maybe tasks.")
 
 (defconst alb-re-org-date
   (concat "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}"
@@ -50,18 +62,15 @@
   "Regexp matching an Org-Mode timestamp including repeaters.  It
 consumes 0 subexpression.")
 
-
 (defconst alb-re-org-todo
   "\\(TODO\\|NEXT\\|WAIT\\|DUTY\\|HOLD\\|DONE\\|STOP\\)"
   "Regexp matching an Org-Mode todo state. It consumes 1
 subexpression.")
 
-
 (defconst alb-re-org-priority
   "\\(\\[#[A-C]\\]\\)"
   "Regexp matching an Org-Mode priority. It consumes 1
 subexpression.")
-
 
 (defconst alb-re-org-heading
   (concat "^"
@@ -81,22 +90,50 @@ start and end of line.  It consumes 5 subexpressions as follows.
    trailing whitespace
 5. (optional) Tags")
 
+(defconst alb-re-org-heading-incoming
+  (concat "^"
+          "\\(\\*+\\)? *"
+          alb-re-org-priority "? *"
+          alb-org-heading-incoming " *"
+          "\\(:[a-z:@_]+:\\)? *"
+          "$")
+  "Regexp matching the Org-Mode heading designated as the tree
+containing incoming tasks.  The regexp is anchored to the start
+and end of line, and consumes 3 subexpressions as follows.
+
+1. (optional) Asterisks
+2. (optional) Priority
+3. (optional) Tags")
+
+(defconst alb-re-org-heading-someday
+  (concat "^"
+          "\\(\\*+\\)? *"
+          alb-re-org-priority "? *"
+          alb-org-heading-someday " *"
+          "\\(:[a-z:@_]+:\\)? *"
+          "$")
+  "Regexp matching the Org-Mode heading designated as the tree
+containing someday/maybe tasks.  It is anchored to the start and
+end of line, and consumes 3 subexpressions as follows.
+
+1. (optional) Asterisks
+2. (optional) Priority
+3. (optional) Tags")
 
 (defconst alb-re-org-metadata
-  (concat "\\(?:\n[ \t]+"
+  (concat "\\(?:\n[ \t]*"
           "\\(?:"
           "\\(?:DEADLINE\\|SCHEDULED\\):[ \t]+<" alb-re-org-date ">"
           "\\(?:[ \t]+\\(?:DEADLINE\\|SCHEDULED\\):[ \t]+<"
           alb-re-org-date ">\\)?"
           "\\|"
-          ":\\(?:LOGBOOK\\|PROPERTIES\\):[ \t]*\\(?:\n.*\\)*?\n[ \t]+:END:"
+          ":\\(?:LOGBOOK\\|PROPERTIES\\):[ \t]*\\(?:\n.*\\)*?\n[ \t]*:END:"
           "\\)[ \t]*"
           "\\)*")
   "Regexp matching the possibly-empty properties metadata for a
 heading. The match includes the newline terminating the headline,
 but excludes the newline terminating the metadata.  It consumes 0
 subexpressions.")
-
 
 (defconst alb-re-org-project-filename
   "^\\(.*\\)/prj-\\([0-9a-z-]*\\)\\.org$"
@@ -105,73 +142,71 @@ column views. The first subexpression matches the directory part
 of the filename. The second subexpression matches the project
 ID.")
 
-
-;;; *** FACE DECLARATIONS *****************************************************
-
+;;
+;;
+;; FACE DECLARATIONS
+;; ---------------------------------------------------------------------
+;;
 
 (defface alb-org-priority-a
   '((t :foreground "white" :weight bold))
   "Face used for priority A keyword."
   :group 'org-faces)
 
-
 (defface alb-org-priority-b
   '((t :foreground "grey80" :weight bold))
   "Face used for priority B keyword."
   :group 'org-faces)
-
 
 (defface alb-org-priority-c
   '((t :foreground "grey60" :weight bold))
   "Face used for priority C keyword."
   :group 'org-faces)
 
-
 (defface alb-org-keyword-todo
   '((t :foreground "grey" :weight bold))
   "Face used for TODO keyword."
   :group 'org-faces)
-
 
 (defface alb-org-keyword-next
   '((t :foreground "PaleGreen" :weight bold))
   "Face used for NEXT keyword."
   :group 'org-faces)
 
-
 (defface alb-org-keyword-wait
   '((t :foreground "LightGoldenrod" :weight bold))
   "Face used for WAIT keyword."
   :group 'org-faces)
-
 
 (defface alb-org-keyword-duty
   '((t :foreground "CornflowerBlue" :weight bold))
   "Face used for DUTY keyword."
   :group 'org-faces)
 
-
 (defface alb-org-keyword-hold
   '((t :foreground "LightGoldenrod" :weight bold))
   "Face used for HOLD keyword."
   :group 'org-faces)
-
 
 (defface alb-org-keyword-done
   '((t :foreground "IndianRed" :weight bold))
   "Face used for DONE keyword."
   :group 'org-faces)
 
-
 (defface alb-org-keyword-stop
   '((t :foreground "grey30" :weight bold))
   "Face used for STOP keyword."
   :group 'org-faces)
 
+;;
+;;
+;; FUNCTION DEFINITIONS
+;; ---------------------------------------------------------------------
+;;
 
-
-;;; *** FUNCTION DEFINITIONS **************************************************
-
+;;
+;; Whitespace cleanup
+;;
 
 (defun alb-org-whitespace-cleanup ()
   "Clean buffer of Org-Mode specific whitespace issues
@@ -193,7 +228,6 @@ safely added to the `write-contents-functions` hook."
       (end-of-line 1))
     nil))
 
-
 (defun alb-add-org-whitespace-cleanup ()
   "Add buffer local hook to clean buffer of Org-Mode specific whitespace issues
 
@@ -201,6 +235,9 @@ Add `alb-org-whitespace-cleanup` to the buffer local
 `write-contents-functions`."
   (add-hook 'write-contents-functions 'alb-org-whitespace-cleanup))
 
+;;
+;; Structure navigation
+;;
 
 (defun alb-org-entry-structure-visit (past-pos)
   "Recursively collect the entry structure upto PAST-POS
@@ -224,7 +261,6 @@ See `alb-org-entry-structure` for further details."
               (progn (goto-char (org-list-get-bottom-point struct))
                      (alb-org-entry-structure-visit past-pos))))))))
 
-
 (defun alb-org-entry-structure (text-pos past-pos)
   "Parse the entry structure between TEXT-POS and PAST-POS
 
@@ -243,7 +279,6 @@ This function customises Org-Mode."
                   (beginning-of-line)
                   (alb-org-entry-structure-visit past-pos)))
 
-
 (defun alb-org-visible-pos (pos)
   "Return POS only if it is visible
 
@@ -251,7 +286,6 @@ This function customises Org-Mode."
   (save-excursion (goto-char pos)
                   (and (not (outline-invisible-p))
                        (point))))
-
 
 (defun alb-org-visible-preamble-pos (text-pos star-pos)
   "Return TEXT-POS only if its distinct from STAR-POS and visible
@@ -262,7 +296,6 @@ This function customises Org-Mode."
                       (and (not (outline-invisible-p))
                            (point)))))
 
-
 (defun alb-org-head-pos (curr-pos)
   "Return position of first non-whitespace character in the heading
 
@@ -272,7 +305,6 @@ customises Org-Mode."
   (save-excursion (goto-char curr-pos)
                   (outline-back-to-heading t)
                   (point)))
-
 
 (defun alb-org-text-pos (head-pos)
   "Return position of first non-whitespace character in the entry
@@ -288,7 +320,6 @@ associated metadata.  This function customises Org-Mode."
                   (looking-at "[[:space:]]*")
                   (match-end 0)))
 
-
 (defun alb-org-past-pos (head-pos)
   "Return position of first non-whitespace character after the entry
 
@@ -300,7 +331,6 @@ heading.  This function customises Org-Mode."
                       (point)
                     (point-max))))
 
-
 (defun alb-org-star-pos (item-pos)
   "Return position of bullet in list item
 
@@ -309,7 +339,6 @@ position of bullet.  This function customises Org-Mode."
   (save-excursion (goto-char item-pos)
                   (looking-at org-list-full-item-re)
                   (match-beginning 1)))
-
 
 (defun alb-org-up-item-pos (curr-pos item-pos struct parents)
   "Find first visible ancestor of CURR-POS in STRUCT
@@ -327,7 +356,6 @@ This function customises Org-Mode."
         (or (and (< star-pos curr-pos)
                  (alb-org-visible-pos star-pos))
             (alb-org-up-item-pos curr-pos next-item-pos struct parents)))))
-
 
 (defun alb-org-up-text-pos (curr-pos entry-struct)
   "Find first visible ancestor of CURR-POS in ENTRY-STRUCT
@@ -361,7 +389,6 @@ Org-Mode."
          (t
           (alb-org-visible-pos text-pos))))))
 
-
 (defun alb-org-up-head-pos (curr-pos head-pos)
   "Find first visible ancestor of CURR-POS
 
@@ -379,7 +406,6 @@ This function customises Org-Mode."
                                                                     past-pos)))
         (alb-org-visible-pos head-pos))))
 
-
 (defun alb-org-up-heading-pos (head-pos)
   "Find first visible ancestor heading of HEAD-POS
 
@@ -391,7 +417,6 @@ Org-Mode."
                   (org-up-heading-safe)
                   (and (outline-on-heading-p)
                        (point))))
-
 
 (defun alb-org-up-structure ()
   "Move backward out one level of Org-Mode structure
@@ -414,7 +439,6 @@ virtual enclosing list.  This function customises Org-Mode."
     (if next-pos
         (goto-char next-pos))))
 
-
 (defun alb-org-down-item-pos (curr-pos item-pos struct parents)
   "Find first visible descendant of CURR-POS in STRUCT
 
@@ -432,7 +456,6 @@ Org-Mode."
         (if (< curr-pos star-pos)
             (alb-org-visible-pos star-pos)
           (alb-org-down-item-pos curr-pos next-item-pos struct parents)))))
-
 
 (defun alb-org-down-text-pos (curr-pos entry-struct)
   "Find first visible descendant of CURR-POS in ENTRY-STRUCT
@@ -464,7 +487,6 @@ Org-Mode."
              (t
               (alb-org-down-text-pos curr-pos (cdr entry-struct))))))))))
 
-
 (defun alb-org-down-heading-pos (head-pos)
   "Find first visible descendant heading of HEAD-POS
 
@@ -478,7 +500,6 @@ function customises Org-Mode."
                     (and (outline-on-heading-p)
                          (< curr-level (org-current-level))
                          (point)))))
-
 
 (defun alb-org-down-structure ()
   "Move down one level of Org-Mode structure
@@ -509,7 +530,6 @@ virtual enclosing list.  This function customises Org-Mode."
     (if next-pos
         (goto-char next-pos))))
 
-
 (defun alb-org-backward-item-pos (curr-pos item-pos struct prevs parents)
   "Find first visible predecessor of CURR-POS in STRUCT
 
@@ -529,7 +549,6 @@ item.  Do not move point.  This function customises Org-Mode."
                  (alb-org-visible-pos star-pos))
             (alb-org-backward-item-pos curr-pos next-item-pos
                                        struct prevs parents)))))
-
 
 (defun alb-org-backward-text-pos (curr-pos entry-struct)
   "Find first visible predecessor of CURR-POS in ENTRY-STRUCT
@@ -569,7 +588,6 @@ Org-Mode."
          (t
           (alb-org-visible-pos text-pos))))))
 
-
 (defun alb-org-backward-head-pos (curr-pos head-pos)
   "Find first visible predecessor of CURR-POS
 
@@ -587,7 +605,6 @@ This function customises Org-Mode."
                                                   text-pos past-pos)))
         (alb-org-visible-pos head-pos))))
 
-
 (defun alb-org-backward-heading-pos (head-pos)
   "Find first visible predecessor heading of HEAD-POS
 
@@ -599,7 +616,6 @@ Org-Mode."
                   (org-backward-heading-same-level 1)
                   (and (outline-on-heading-p)
                        (point))))
-
 
 (defun alb-org-backward-structure ()
   "Move backward in the Org-Mode structure
@@ -623,7 +639,6 @@ list.  This function customises Org-Mode."
     (if next-pos
         (goto-char next-pos))))
 
-
 (defun alb-org-forward-item-pos (curr-pos item-pos struct prevs parents)
   "Find first visible successor of CURR-POS in STRUCT
 
@@ -646,7 +661,6 @@ customises Org-Mode."
                                       struct prevs parents)
             (alb-org-forward-item-pos curr-pos parent-item-pos
                                       struct prevs parents)))))
-
 
 (defun alb-org-forward-text-pos (curr-pos entry-struct)
   "Find first visible successor of CURR-POS in ENTRY-STRUCT
@@ -680,7 +694,6 @@ Org-Mode."
              (t
               (alb-org-forward-text-pos curr-pos (cdr entry-struct))))))))))
 
-
 (defun alb-org-forward-head-pos (curr-pos head-pos)
   "Find first visible successor of CURR-POS
 
@@ -699,7 +712,6 @@ Org-Mode."
                                               text-pos past-pos))
           (alb-org-visible-pos past-pos)))))
 
-
 (defun alb-org-forward-heading-pos (head-pos)
   "Find first visible successor heading of HEAD-POS
 
@@ -711,7 +723,6 @@ Org-Mode."
                   (org-forward-heading-same-level 1)
                   (and (outline-on-heading-p)
                        (point))))
-
 
 (defun alb-org-forward-structure ()
   "Move forward in the Org-Mode structure
@@ -734,7 +745,6 @@ list.  This function customises Org-Mode."
                          (alb-org-forward-heading-pos head-pos)))))
     (if next-pos
       (goto-char next-pos))))
-
 
 (defun alb-org-prev-item-pos (curr-pos item-pos struct prevs parents)
   "Find first visible list item before CURR-POS in STRUCT
@@ -760,7 +770,6 @@ This function customises Org-Mode."
                                    prevs parents)
             (and (< star-pos curr-pos)
                  (alb-org-visible-pos star-pos))))))
-
 
 (defun alb-org-prev-text-pos (curr-pos entry-struct)
   "Find first visible preamble or list item before CURR-POS in ENTRY-STRUCT
@@ -788,7 +797,6 @@ function customises Org-Mode."
           (and (< text-pos curr-pos)
                (alb-org-visible-pos text-pos))))))
 
-
 (defun alb-org-prev-head-pos (curr-pos head-pos)
   "Find first visible preamble or list item before CURR-POS
 
@@ -806,7 +814,6 @@ it.  Do not move point.  This function customises Org-Mode."
                                                              past-pos)))
         (alb-org-visible-pos head-pos))))
 
-
 (defun alb-org-prev-heading-pos (head-pos)
   "Find first visible heading before HEAD-POS
 
@@ -817,7 +824,6 @@ Do not move point.  This function customises Org-Mode."
                   (outline-previous-visible-heading 1)
                   (and (outline-on-heading-p)
                        (point))))
-
 
 (defun alb-org-prev-structure ()
   "Move to the previous element in the Org-Mode structure
@@ -839,7 +845,6 @@ enclosing list.  This function customises Org-Mode."
                             (alb-org-prev-head-pos curr-pos prev-head-pos)))))
     (if next-pos
         (goto-char next-pos))))
-
 
 (defun alb-org-next-item-pos (curr-pos item-pos struct prevs parents)
   "Find first visible list item after CURR-POS in STRUCT
@@ -863,7 +868,6 @@ This function customises Org-Mode."
                                    prevs parents)
             (alb-org-next-item-pos curr-pos sibling-pos struct
                                    prevs parents)))))
-
 
 (defun alb-org-next-text-pos (curr-pos entry-struct)
   "Find first visible preamble or list iteam after CURR-POS in ENTRY-STRUCT
@@ -891,7 +895,6 @@ function customises Org-Mode."
           (and (< curr-pos text-pos)
                (alb-org-visible-pos text-pos))))))
 
-
 (defun alb-org-next-head-pos (curr-pos head-pos)
   "Find first visible preamble or list item after CURR-POS
 
@@ -910,7 +913,6 @@ Org-Mode."
                                  (alb-org-entry-structure text-pos past-pos))
           (alb-org-visible-pos past-pos)))))
 
-
 (defun alb-org-next-heading-pos (head-pos)
   "Find first visible heading after HEAD-POS
 
@@ -921,7 +923,6 @@ Do not move point.  This function customises Org-Mode."
                   (outline-next-visible-heading 1)
                   (and (outline-on-heading-p)
                        (point))))
-
 
 (defun alb-org-next-structure ()
   "Move to the next element in the Org-Mode structure
@@ -941,6 +942,9 @@ enclosing list.  This function customises Org-Mode."
     (if next-pos
       (goto-char next-pos))))
 
+;;
+;; Heading navigation
+;;
 
 (defun alb-org-up-heading ()
   "Move to the parent heading
@@ -959,7 +963,6 @@ function customises Org-Mode."
     (if next-pos
         (goto-char next-pos))))
 
-
 (defun alb-org-down-heading ()
   "Move to the first child heading
 
@@ -975,6 +978,44 @@ function customises Org-Mode."
     (if next-pos
         (goto-char next-pos))))
 
+;;
+;; Column view customization
+;;
+
+(defun alb-org-columns-modify-value-for-display-function (column-title value)
+  "Modify values for display in column view
+
+The mappings are designed to make deadlines, effort estimates,
+and elapsed time easier to follow in column view.
+
+- when COLUMN-TITLE is =Task= remove tags from =ITEM= value; and
+- when COLUMN-TITLE is =Project= remove tags from =ITEM= value."
+  (cond ((string= column-title "Project")
+         (if (string-match alb-re-org-heading value)
+             (concat (match-string 1 value) " " (match-string 4 value))))
+        ((string= column-title "Label")
+         (if (string-match alb-re-org-project-filename value)
+             (match-string 2 value)))
+        ((string= column-title "Media")
+         (concat (if (string-match-p ":on_email:" value) "@")
+                 (if (string-match-p ":on_paper:" value) "#")
+                 (if (string-match-p ":on_docs:" value) "$")))
+        ((string= column-title "Task")
+         (if (string-match alb-re-org-heading value)
+             (concat (match-string 1 value) " " (match-string 4 value))))
+        ((string= column-title "X")
+         (cond ((string= value "TODO") "t")
+               ((string= value "NEXT") "n")
+               ((string= value "WAIT") "w")
+               ((string= value "DUTY") "u")
+               ((string= value "HOLD") "h")
+               ((string= value "DONE") "D")
+               ((string= value "STOP") "S")
+               ))))
+
+;;
+;; Agenda customization
+;;
 
 (defun alb-org-agenda-cmp (a b)
   "Compare a pair of agenda entries after formatting
@@ -995,11 +1036,10 @@ This function customises Org-Mode."
   (let ((level (org-current-level)))
     (cond ((= level 1)
            "\n\n")
-          ((= level 3)
+          ((= level 2)
            "\n")
-          ((= level 5)
+          ((= level 3)
            "[ ] "))))
-
 
 (defun alb-org-agenda-prefix-discussion-tasks ()
   "Construct a prefix for each entry in the discussion tasks agenda
@@ -1010,6 +1050,88 @@ This function customises Org-Mode."
     (if (string-match ":\\(@[^:]*\\):" tags)
         (match-string-no-properties 1 tags))))
 
+;;
+;; Capture customization
+;;
+
+(defun alb-org-locate-top ()
+  "Place point at top heading
+
+This function customises Org-Mode."
+  (goto-char (point-min))
+  (outline-next-heading))
+
+(defun alb-org-locate-incoming ()
+  "Place point at tree containing incoming tasks
+
+This function customises Org-Mode."
+  (goto-char (point-min))
+  (if (re-search-forward alb-re-org-heading-incoming nil t)
+      (goto-char (match-beginning 0))
+    (outline-next-heading)))
+
+(defun alb-org-locate-someday ()
+  "Place point at tree containing someday/maybe tasks
+
+This function customises Org-Mode."
+  (goto-char (point-min))
+  (if (re-search-forward alb-re-org-heading-someday nil t)
+      (goto-char (match-beginning 0))
+    (outline-next-heading)))
+
+(defun alb-org-locate-heading ()
+  "Place point at enclosing heading, or top heading in the file
+
+This function customises Org-Mode."
+  (if (org-before-first-heading-p)
+      (outline-next-heading)
+    (outline-back-to-heading t)))
+
+(defun alb-org-locate-project-sentinel ()
+  "Place point at project sentinel
+
+XXX Insert project at start of list of current projects.
+Therefore, places point before incoming tree.  This function
+customises Org-Mode."
+  (alb-org-locate-incoming))
+
+(defun alb-org-locate-todo-sentinel ()
+  "Place point at todo sentinel
+
+XXX Insert TODO at start of enclosing project, or in the incoming
+tasks tree.  Therefore, places point at XXX.  This function
+customises Org-Mode."
+  (alb-org-locate-heading)
+  (while (< 2 (org-current-level))
+    (outline-up-heading 1 t))
+  (if (< (org-current-level) 2)
+      (alb-org-locate-incoming))
+  (outline-next-heading))
+
+(defun alb-org-locate-someday-sentinel ()
+  "Place point at someday/maybe sentinel
+
+XXX Note that this is backward in order compar3d to rest.  Insert
+TODO at start of enclosing project, or in the incoming tasks
+tree.  Therefore, places point at XXX.  This function customises
+Org-Mode."
+  (alb-org-locate-someday)
+  (org-forward-heading-same-level 1 t))
+
+(defun alb-org-locate-link-sentinel ()
+  "Place point at link sentinel
+
+XXX Insert link at start of enclosing TODO or project, or in the
+incoming tasks tree.  Therefore, places point at XXX.  This
+function customises Org-Mode."
+  (alb-org-locate-heading)
+  (while (< 3 (org-current-level))
+    (outline-up-heading 1 t))
+  (alb-org-down-structure))
+
+;;
+;; Heading sorting
+;;
 
 (defun alb-org-sort-rank (properties)
   "Return the rank of a todo item from its PROPERTIES
@@ -1034,7 +1156,6 @@ Org-Mode."
            4)
           ((or (string= todo "DONE") (string= todo "STOP"))
            5))))
-
 
 (defun alb-org-sort-timestamp (properties)
   "Return the time stamp of a todo item from its PROPERTIES
@@ -1065,7 +1186,6 @@ the logbook.  This function customises Org-Mode."
                (date-to-time (cdr (assoc "TIMESTAMP_IA" properties)))
              '(0 0))))))
 
-
 (defun alb-org-sort-string ()
   "Generate a string for sorting the entry at point
 
@@ -1081,7 +1201,9 @@ entry.  This function customises Org-Mode."
          (sec-lo (- #xffff (cadr timestamp)))
          (title (nth 4 (org-heading-components))))
     (concat (format "%1d#%4x-%4x#%s" rank sec-hi sec-lo title))))
-
+;;
+;; Widen
+;;
 
 (defun alb-org-widen ()
   "Widen to the whole buffer and centre the headline"
@@ -1089,6 +1211,9 @@ entry.  This function customises Org-Mode."
   (widen)
   (recenter))
 
+;;
+;; XXX Structure navigation
+;;
 
 (defun alb-org-end ()
   "Move to the start of the content beneath the headline
@@ -1126,6 +1251,9 @@ line, and places the cursor at the end of the second blank line."
              (forward-line -2)
              (indent-according-to-mode)))))
 
+;;
+;; XXX Structure navigation
+;;
 
 (defun alb-org-insert-heading-before ()
   "Move to the containing heading and insert a matching heading"
@@ -1139,7 +1267,6 @@ line, and places the cursor at the end of the second blank line."
     (forward-line -2)
     (insert stars)))
 
-
 (defun alb-org-insert-heading-after ()
   "Move beyond the containing heading and insert a matching heading"
   (interactive)
@@ -1152,6 +1279,9 @@ line, and places the cursor at the end of the second blank line."
     (newline 2)
     (insert stars)))
 
+;;
+;; XXX Structure navigation
+;;
 
 (defun alb-org-newline-before ()
   "Insert a newline before the current line"
@@ -1159,13 +1289,15 @@ line, and places the cursor at the end of the second blank line."
   (save-excursion (beginning-of-line)
                   (newline)))
 
-
 (defun alb-org-newline-after ()
   "Insert a newline after the current line"
   (interactive)
   (save-excursion (beginning-of-line 2)
                   (newline)))
 
+;;
+;; XXX Structure navigation
+;;
 
 (defun alb-org-update-headline-statistics ()
   "Update the statistics cookie on the headline
@@ -1203,89 +1335,25 @@ update, removes it. Repairs the positions of the tags."
                   (replace-match "")))))
       (org-set-tags nil t))))
 
-
-(defun alb-org-insert-gmail-link-text ()
-  "Insert text describing a gmail message
-
-Inserts the expansion of the `org-capture' template associated
-with the key =e= at point."
-  (interactive)
-  (insert (org-trim
-           (org-capture-fill-template
-            (nth 4 (assoc "e" org-capture-templates))))))
-
-
-(defun alb-org-insert-gmail-link-item ()
-  "Insert link describing a gmail message into current headline
-
-Calls `alb-org-insert-gmail-link-text'."
-  (interactive)
-  (save-excursion
-    (alb-org-end)
-    (cond ((org-at-item-p)
-           (org-insert-item))
-          ((looking-at "[^[:space:]]")
-           (newline-and-indent)
-           (newline-and-indent)
-           (forward-line -2)
-           (indent-according-to-mode)
-           (insert "- "))
-          (t
-           (insert "- ")))
-    (alb-org-insert-gmail-link-text)))
-
+;;
+;; List edits
+;;
 
 (defun alb-org-insert-item ()
   "Insert a list item."
   (interactive)
   (org-insert-item nil))
 
-
 (defun alb-org-insert-checkbox ()
   "Insert a check boxed list item."
   (interactive)
   (org-insert-item t))
-
 
 (defun alb-org-toggle-checkbox (&optional toggle-presence)
   "Toggle a check boxed list item."
   (interactive "P")
   (org-toggle-checkbox toggle-presence))
 
-
-(defun alb-org-columns-modify-value-for-display-function (column-title value)
-  "Modify values for display in column view
-
-The mappings are designed to make deadlines, effort estimates,
-and elapsed time easier to follow in column view.
-
-- when COLUMN-TITLE is =Task= remove tags from =ITEM= value; and
-- when COLUMN-TITLE is =Project= remove tags from =ITEM= value."
-  (cond ((string= column-title "Project")
-         (if (string-match alb-re-org-heading value)
-             (concat (match-string 1 value) " " (match-string 4 value))))
-        ((string= column-title "Label")
-         (if (string-match alb-re-org-project-filename value)
-             (match-string 2 value)))
-        ((string= column-title "Media")
-         (concat (if (string-match-p ":on_email:" value) "@")
-                 (if (string-match-p ":on_paper:" value) "#")
-                 (if (string-match-p ":on_docs:" value) "$")))
-        ((string= column-title "Task")
-         (if (string-match alb-re-org-heading value)
-             (concat (match-string 1 value) " " (match-string 4 value))))
-        ((string= column-title "X")
-         (cond ((string= value "TODO") "t")
-               ((string= value "NEXT") "n")
-               ((string= value "WAIT") "w")
-               ((string= value "DUTY") "u")
-               ((string= value "HOLD") "h")
-               ((string= value "DONE") "D")
-               ((string= value "STOP") "S")
-               ))))
-
-
-
-;;; Local Variables:
-;;; mode: emacs-lisp
-;;; End:
+;; Local Variables:
+;; mode: emacs-lisp
+;; End:
