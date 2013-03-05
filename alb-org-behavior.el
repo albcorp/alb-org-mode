@@ -1127,6 +1127,7 @@ function customises Org-Mode."
   (alb-org-locate-heading)
   (while (< 3 (org-current-level))
     (outline-up-heading 1 t))
+  (org-show-entry)
   (alb-org-down-structure))
 
 ;;
