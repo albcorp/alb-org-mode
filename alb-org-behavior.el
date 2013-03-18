@@ -42,6 +42,7 @@
 ;; CONSTANT DECLARATIONS
 ;; ---------------------------------------------------------------------
 ;;
+
 (defconst alb-org-heading-incoming
   "00-Incoming"
   "Title of the Org-Mode heading designated as the tree
