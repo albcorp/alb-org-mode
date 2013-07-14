@@ -235,6 +235,9 @@ This is designed to be called from the shell as follows.
     (define-key org-mode-map "\C-cv" 'org-agenda)
     (define-key org-mode-map "\C-c/" 'org-sparse-tree)
 
+    ;; Exporting and publishing
+    (define-key org-mode-map "\C-ce" 'org-export-dispatch)
+
     ;; Content editing
     (define-key org-mode-map "\C-cL" 'org-insert-link)
     (define-key org-mode-map "\C-c!" 'org-time-stamp-inactive)
@@ -303,7 +306,9 @@ This is designed to be called from the shell as follows.
             ("l" . org-store-link)
             ("Agenda views")
             ("v" . org-agenda)
-            ("/" . org-sparse-tree)))
+            ("/" . org-sparse-tree)
+            ("Exporting and publishing")
+            ("e" . org-export-dispatch)))
 
     ;; Fix the clock values on entries
     (org-clock-sum)))
