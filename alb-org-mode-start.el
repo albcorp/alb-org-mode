@@ -70,6 +70,7 @@ This is designed to be called from the shell as follows.
 ;;
 ;;
 ;; DEFERRED CONFIGURATION
+;; ---------------------------------------------------------------------
 ;;
 
 (eval-after-load 'org
