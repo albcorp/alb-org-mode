@@ -1,7 +1,7 @@
 ;;
 ;; AlbOrgMode/alb-org-mode-start.el
 ;;
-;;     Copyright (C) 2010-2013 Andrew Lincoln Burrow
+;;     Copyright (C) 2010-2014 Andrew Lincoln Burrow
 ;;
 ;;     This library is free software; you can redistribute it and/or
 ;;     modify it under the terms of the GNU General Public License as
@@ -184,78 +184,89 @@ This is designed to be called from the shell as follows.
     (define-key org-mode-map "\M-e" nil)
 
     ;; Global
-    (define-key org-mode-map "\C-cs" 'org-save-all-org-buffers)
-    (define-key org-mode-map "\C-c\C-c" 'org-ctrl-c-ctrl-c)
+    (define-key org-mode-map (kbd "C-c s") 'org-save-all-org-buffers)
+    (define-key org-mode-map (kbd "C-c C-c") 'org-ctrl-c-ctrl-c)
 
     ;; Outline visibility
-    (define-key org-mode-map "\t" 'org-cycle)
-    (define-key org-mode-map "\C-c>" 'org-narrow-to-subtree)
-    (define-key org-mode-map "\C-c<" 'widen)
-    (define-key org-mode-map "\C-cC" 'org-columns)
+    (define-key org-mode-map (kbd "TAB") 'org-cycle)
+    (define-key org-mode-map (kbd "C-c >") 'org-narrow-to-subtree)
+    (define-key org-mode-map (kbd "C-c <") 'widen)
+    (define-key org-mode-map (kbd "C-c C") 'org-columns)
 
     ;; Outline navigation
-    (define-key org-mode-map "\C-\M-u" 'alb-org-up-structure)
-    (define-key org-mode-map "\C-\M-d" 'alb-org-down-structure)
-    (define-key org-mode-map "\C-\M-b" 'alb-org-backward-structure)
-    (define-key org-mode-map "\C-\M-f" 'alb-org-forward-structure)
-    (define-key org-mode-map "\C-\M-p" 'alb-org-prev-structure)
-    (define-key org-mode-map "\C-\M-n" 'alb-org-next-structure)
-    (define-key org-mode-map "\C-cu" 'alb-org-up-heading)
-    (define-key org-mode-map "\C-cd" 'alb-org-down-heading)
-    (define-key org-mode-map "\C-cb" 'org-backward-heading-same-level)
-    (define-key org-mode-map "\C-cf" 'org-forward-heading-same-level)
-    (define-key org-mode-map "\C-cp" 'outline-previous-visible-heading)
-    (define-key org-mode-map "\C-cn" 'outline-next-visible-heading)
-    (define-key org-mode-map "\C-a" 'org-beginning-of-line)
-    (define-key org-mode-map "\C-e" 'org-end-of-line)
-    (define-key org-mode-map "\C-co" 'org-open-at-point)
+    (define-key org-mode-map (kbd "C-M-u") 'alb-org-up-structure)
+    (define-key org-mode-map (kbd "ESC C-u") 'alb-org-up-structure)
+    (define-key org-mode-map (kbd "C-M-d") 'alb-org-down-structure)
+    (define-key org-mode-map (kbd "ESC C-d") 'alb-org-down-structure)
+    (define-key org-mode-map (kbd "C-M-b") 'alb-org-backward-structure)
+    (define-key org-mode-map (kbd "ESC C-b") 'alb-org-backward-structure)
+    (define-key org-mode-map (kbd "C-M-f") 'alb-org-forward-structure)
+    (define-key org-mode-map (kbd "ESC C-f") 'alb-org-forward-structure)
+    (define-key org-mode-map (kbd "C-M-p") 'alb-org-prev-structure)
+    (define-key org-mode-map (kbd "ESC C-p") 'alb-org-prev-structure)
+    (define-key org-mode-map (kbd "C-M-n") 'alb-org-next-structure)
+    (define-key org-mode-map (kbd "ESC C-n") 'alb-org-next-structure)
+    (define-key org-mode-map (kbd "C-c u") 'alb-org-up-heading)
+    (define-key org-mode-map (kbd "C-c d") 'alb-org-down-heading)
+    (define-key org-mode-map (kbd "C-c b") 'org-backward-heading-same-level)
+    (define-key org-mode-map (kbd "C-c f") 'org-forward-heading-same-level)
+    (define-key org-mode-map (kbd "C-c p") 'outline-previous-visible-heading)
+    (define-key org-mode-map (kbd "C-c n") 'outline-next-visible-heading)
+    (define-key org-mode-map (kbd "C-a") 'org-beginning-of-line)
+    (define-key org-mode-map (kbd "C-e") 'org-end-of-line)
+    (define-key org-mode-map (kbd "C-c o") 'org-open-at-point)
 
     ;; Outline structure editing
-    (define-key org-mode-map "\C-c." 'outline-mark-subtree)
-    (define-key org-mode-map "\C-ca" 'org-archive-subtree-default)
-    (define-key org-mode-map "\C-ci" 'alb-org-insert-heading-before)
-    (define-key org-mode-map "\C-cj" 'alb-org-insert-heading-after)
-    (define-key org-mode-map "\C-cc" 'org-capture)
-    (define-key org-mode-map "\C-cw" 'org-refile)
+    (define-key org-mode-map (kbd "C-c .") 'outline-mark-subtree)
+    (define-key org-mode-map (kbd "C-c a") 'org-archive-subtree-default)
+    (define-key org-mode-map (kbd "C-c i") 'alb-org-insert-heading-before)
+    (define-key org-mode-map (kbd "C-c j") 'alb-org-insert-heading-after)
+    (define-key org-mode-map (kbd "C-c c") 'org-capture)
+    (define-key org-mode-map (kbd "C-c w") 'org-refile)
 
     ;; Clock commands
-    (define-key org-mode-map "\C-cI" 'org-clock-in)
-    (define-key org-mode-map "\C-cO" 'org-clock-out)
-    (define-key org-mode-map "\C-cX" 'org-clock-cancel)
-    (define-key org-mode-map "\C-cJ" 'org-clock-goto)
+    (define-key org-mode-map (kbd "C-c I") 'org-clock-in)
+    (define-key org-mode-map (kbd "C-c O") 'org-clock-out)
+    (define-key org-mode-map (kbd "C-c X") 'org-clock-cancel)
+    (define-key org-mode-map (kbd "C-c J") 'org-clock-goto)
 
     ;; Meta-data editing
-    (define-key org-mode-map "\C-ct" 'org-todo)
-    (define-key org-mode-map "\C-c:" 'org-set-tags-command)
-    (define-key org-mode-map "\C-cD" 'org-deadline)
-    (define-key org-mode-map "\C-cS" 'org-schedule)
-    (define-key org-mode-map "\C-cE" 'org-set-effort)
-    (define-key org-mode-map "\C-c#" 'org-update-statistics-cookies)
+    (define-key org-mode-map (kbd "C-c t") 'org-todo)
+    (define-key org-mode-map (kbd "C-c :") 'org-set-tags-command)
+    (define-key org-mode-map (kbd "C-c D") 'org-deadline)
+    (define-key org-mode-map (kbd "C-c S") 'org-schedule)
+    (define-key org-mode-map (kbd "C-c E") 'org-set-effort)
+    (define-key org-mode-map (kbd "C-c #") 'org-update-statistics-cookies)
 
     ;; Agenda views
-    (define-key org-mode-map "\C-cv" 'org-agenda)
-    (define-key org-mode-map "\C-c/" 'org-sparse-tree)
+    (define-key org-mode-map (kbd "C-c v") 'org-agenda)
+    (define-key org-mode-map (kbd "C-c /") 'org-sparse-tree)
 
     ;; Exporting and publishing
-    (define-key org-mode-map "\C-ce" 'org-export-dispatch)
+    (define-key org-mode-map (kbd "C-c e") 'org-export-dispatch)
 
     ;; Content editing
-    (define-key org-mode-map "\C-cL" 'org-insert-link)
-    (define-key org-mode-map "\C-c!" 'org-time-stamp-inactive)
-    (define-key org-mode-map [(shift up)] 'org-timestamp-up)
-    (define-key org-mode-map [(shift down)] 'org-timestamp-down)
-    (define-key org-mode-map [(control return)] 'alb-org-newline-before)
-    (define-key org-mode-map [(control shift return)] 'alb-org-newline-after)
-    (define-key org-mode-map [(meta return)] 'alb-org-insert-item)
-    (define-key org-mode-map [(meta shift return)]
-      'alb-org-insert-checkbox)
-    (define-key org-mode-map [(meta up)] 'org-move-item-up)
-    (define-key org-mode-map [(meta down)] 'org-move-item-down)
-    (define-key org-mode-map [(meta left)] 'org-outdent-item-tree)
-    (define-key org-mode-map [(meta right)]'org-indent-item-tree)
-    (define-key org-mode-map "\C-c-" 'org-cycle-list-bullet)
-    (define-key org-mode-map "\C-cx" 'alb-org-toggle-checkbox)
-    (define-key org-mode-map "\C-c'" 'org-edit-special)
+    (define-key org-mode-map (kbd "C-c L") 'org-insert-link)
+    (define-key org-mode-map (kbd "C-c !") 'org-time-stamp-inactive)
+    (define-key org-mode-map (kbd "S-<up>") 'org-timestamp-up)
+    (define-key org-mode-map (kbd "S-<down>") 'org-timestamp-down)
+    (define-key org-mode-map (kbd "C-<return>") 'alb-org-newline-before)
+    (define-key org-mode-map (kbd "C-S-<return>") 'alb-org-newline-after)
+    (define-key org-mode-map (kbd "M-<return>") 'alb-org-insert-item)
+    (define-key org-mode-map (kbd "ESC <return>") 'alb-org-insert-item)
+    (define-key org-mode-map (kbd "M-S-<return>") 'alb-org-insert-checkbox)
+    (define-key org-mode-map (kbd "ESC S-<return>") 'alb-org-insert-checkbox)
+    (define-key org-mode-map (kbd "M-<up>") 'org-move-item-up)
+    (define-key org-mode-map (kbd "ESC <up>") 'org-move-item-up)
+    (define-key org-mode-map (kbd "M-<down>") 'org-move-item-down)
+    (define-key org-mode-map (kbd "ESC <down>") 'org-move-item-down)
+    (define-key org-mode-map (kbd "M-<left>") 'org-outdent-item-tree)
+    (define-key org-mode-map (kbd "ESC <left>") 'org-outdent-item-tree)
+    (define-key org-mode-map (kbd "M-<right>")'org-indent-item-tree)
+    (define-key org-mode-map (kbd "ESC <right>")'org-indent-item-tree)
+    (define-key org-mode-map (kbd "C-c -") 'org-cycle-list-bullet)
+    (define-key org-mode-map (kbd "C-c x") 'alb-org-toggle-checkbox)
+    (define-key org-mode-map (kbd "C-c '") 'org-edit-special)
 
     ;; Reset default speed keys
     (setq org-speed-commands-default
