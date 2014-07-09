@@ -1,7 +1,7 @@
 ;;
 ;; AlbOrgMode/alb-org-behavior.el
 ;;
-;;     Copyright (C) 2010-2013 Andrew Lincoln Burrow
+;;     Copyright (C) 2010-2014 Andrew Lincoln Burrow
 ;;
 ;;     This library is free software; you can redistribute it and/or
 ;;     modify it under the terms of the GNU General Public License as
@@ -44,12 +44,12 @@
 ;;
 
 (defconst alb-org-heading-incoming
-  "00-Incoming"
+  "01-Think"
   "Title of the Org-Mode heading designated as the tree
 containing incoming tasks.")
 
 (defconst alb-org-heading-someday
-  "ZZ-Someday"
+  "ZZ-Hold"
   "Title of the Org-Mode heading designated as the tree
 containing someday/maybe tasks.")
 
