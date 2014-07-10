@@ -1104,19 +1104,22 @@ function customises Org-Mode."
 
 The timestamp defines the second step in an approximated reverse
 chronological order.  =HOLD= items are timestamped by scheduled
-time, and =DONE= and =STOP= items are timestamped from the
-logbook.  All other items are set to epoch.  This function
+time.  =TODO=, =WAIT=, =DONE=, and =STOP= items are timestamped
+from the first keyword-less inactive timestamp in the entry.  In
+practice, this is the timestamp of the last TODO state
+transition.  All other items are set to epoch.  This function
 customises Org-Mode."
   (let ((todo (cdr (assoc "TODO" properties))))
     (cond ((string= todo "HOLD")
            (if (assoc "SCHEDULED" properties)
                (date-to-time (cdr (assoc "SCHEDULED" properties)))
              '(0 0)))
-          ((or (string= todo "DONE") (string= todo "STOP"))
+          ((or (string= todo "TODO") (string= todo "WAIT")
+               (string= todo "DONE") (string= todo "STOP"))
            (if (assoc "TIMESTAMP_IA" properties)
                (date-to-time (cdr (assoc "TIMESTAMP_IA" properties)))
              '(0 0)))
-          ('t
+          (t
            '(0 0)))))
 
 (defun alb-org-sort-string ()
