@@ -59,7 +59,7 @@ containing incoming tasks.")
 consumes 0 subexpression.")
 
 (defconst alb-re-org-todo
-  "\\(TODO\\|NEXT\\|WAIT\\|DUTY\\|DONE\\|STOP\\)"
+  "\\(HOLD\\|TODO\\|WAIT\\|DUTY\\|DONE\\|STOP\\)"
   "Regexp matching an Org-Mode todo state. It consumes 1
 subexpression.")
 
@@ -122,29 +122,14 @@ subexpressions.")
 ;; ---------------------------------------------------------------------
 ;;
 
-(defface alb-org-priority-a
-  '((t :foreground "white" :weight bold))
-  "Face used for priority A keyword."
-  :group 'org-faces)
-
-(defface alb-org-priority-b
-  '((t :foreground "grey80" :weight bold))
-  "Face used for priority B keyword."
-  :group 'org-faces)
-
-(defface alb-org-priority-c
-  '((t :foreground "grey60" :weight bold))
-  "Face used for priority C keyword."
+(defface alb-org-keyword-hold
+  '((t :foreground "grey" :weight bold))
+  "Face used for HOLD keyword."
   :group 'org-faces)
 
 (defface alb-org-keyword-todo
-  '((t :foreground "grey" :weight bold))
-  "Face used for TODO keyword."
-  :group 'org-faces)
-
-(defface alb-org-keyword-next
   '((t :foreground "PaleGreen" :weight bold))
-  "Face used for NEXT keyword."
+  "Face used for TODO keyword."
   :group 'org-faces)
 
 (defface alb-org-keyword-wait
@@ -965,7 +950,7 @@ function customises Org-Mode."
 (defun alb-org-columns-modify-value-for-display-function (column-title value)
   "Modify values for display in column view
 
-The mappings are designed to make deadlines, effort estimates,
+The mappings are designed to make schedules, effort estimates,
 and elapsed time easier to follow in column view.
 
 - when COLUMN-TITLE is =Task= remove tags from =ITEM= value; and
@@ -977,8 +962,8 @@ and elapsed time easier to follow in column view.
          (if (string-match alb-re-org-heading value)
              (concat (match-string 1 value) " " (match-string 4 value))))
         ((string= column-title "X")
-         (cond ((string= value "TODO") "t")
-               ((string= value "NEXT") "n")
+         (cond ((string= value "HOLD") "h")
+               ((string= value "TODO") "t")
                ((string= value "WAIT") "w")
                ((string= value "DUTY") "u")
                ((string= value "DONE") "D")
@@ -1022,7 +1007,7 @@ This function customises Org-Mode."
         (match-string-no-properties 1 tags))))
 
 (defun alb-org-agenda-prefix-catalog ()
-  "Construct a prefix for each entry in the project catalog agenda
+  "Construct a prefix for each entry in the catalog of areas of focus
 
 This function customises Org-Mode."
   (let ((level (org-current-level)))
@@ -1054,20 +1039,21 @@ This function customises Org-Mode."
       (outline-next-heading)
     (outline-back-to-heading t)))
 
-(defun alb-org-locate-project-sentinel ()
-  "Place point at project sentinel
+(defun alb-org-locate-focus-sentinel ()
+  "Place point at focus sentinel
 
-XXX Insert project at start of list of current projects.
-Therefore, places point at next tree after incoming tree.  This
-function customises Org-Mode."
+Insert area of focus heading at start of list of areas of focus.
+Therefore, places point at first tree after the incoming tree.
+This function customises Org-Mode."
   (alb-org-locate-incoming)
   (outline-forward-same-level 1))
 
 (defun alb-org-locate-todo-sentinel ()
   "Place point at todo sentinel
 
-XXX Insert TODO at start of enclosing project, or in the incoming
-tasks tree.  Therefore, places point at XXX.  This function
+Insert TODO heading at start of enclosing area of focus heading,
+or in the incoming tasks tree.  Therefore, places point at first
+child heading of the enclosing level 2 heading.  This function
 customises Org-Mode."
   (alb-org-locate-heading)
   (while (< 2 (org-current-level))
@@ -1079,9 +1065,9 @@ customises Org-Mode."
 (defun alb-org-locate-link-sentinel ()
   "Place point at link sentinel
 
-XXX Insert link at start of enclosing TODO or project, or in the
-incoming tasks tree.  Therefore, places point at XXX.  This
-function customises Org-Mode."
+XXX Insert link at start of enclosing TODO heading or area of
+focus heading, or in the incoming tasks tree.  This function
+customises Org-Mode."
   (alb-org-locate-heading)
   (while (< 3 (org-current-level))
     (outline-up-heading 1 t))
@@ -1097,16 +1083,16 @@ function customises Org-Mode."
 
 The rank defines the first step in an approximated reverse
 chronological order.  The rank gives the todo state an
-interpretation in this order.  All =TODO= items are newer than
-all =NEXT= and =WAIT= items, which are newer than all =DUTY=
+interpretation in this order.  All =HOLD= items are newer than
+all =TODO= and =WAIT= items, which are newer than all =DUTY=
 items, which are newer than all =DONE= and =STOP= items.  This
 function customises Org-Mode."
   (let ((todo (cdr (assoc "TODO" properties))))
     (cond ((not todo)
            0)
-          ((string= todo "TODO")
+          ((string= todo "HOLD")
            1)
-          ((or (string= todo "NEXT") (string= todo "WAIT"))
+          ((or (string= todo "TODO") (string= todo "WAIT"))
            2)
           ((string= todo "DUTY")
            3)
@@ -1117,12 +1103,12 @@ function customises Org-Mode."
   "Return the time stamp of a todo item from its PROPERTIES
 
 The timestamp defines the second step in an approximated reverse
-chronological order.  =TODO= items are timestamped by scheduled
+chronological order.  =HOLD= items are timestamped by scheduled
 time, and =DONE= and =STOP= items are timestamped from the
 logbook.  All other items are set to epoch.  This function
 customises Org-Mode."
   (let ((todo (cdr (assoc "TODO" properties))))
-    (cond ((string= todo "TODO")
+    (cond ((string= todo "HOLD")
            (if (assoc "SCHEDULED" properties)
                (date-to-time (cdr (assoc "SCHEDULED" properties)))
              '(0 0)))
