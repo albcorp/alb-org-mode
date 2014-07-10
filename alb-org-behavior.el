@@ -116,13 +116,6 @@ heading. The match includes the newline terminating the headline,
 but excludes the newline terminating the metadata.  It consumes 0
 subexpressions.")
 
-(defconst alb-re-org-project-filename
-  "^\\(.*\\)/prj-\\([0-9a-z-]*\\)\\.org$"
-  "Regexp matching a project filename for use in formatting
-column views. The first subexpression matches the directory part
-of the filename. The second subexpression matches the project
-ID.")
-
 ;;
 ;;
 ;; FACE DECLARATIONS
@@ -974,13 +967,6 @@ and elapsed time easier to follow in column view.
   (cond ((string= column-title "Project")
          (if (string-match alb-re-org-heading value)
              (concat (match-string 1 value) " " (match-string 4 value))))
-        ((string= column-title "Label")
-         (if (string-match alb-re-org-project-filename value)
-             (match-string 2 value)))
-        ((string= column-title "Media")
-         (concat (if (string-match-p ":on_email:" value) "@")
-                 (if (string-match-p ":on_paper:" value) "#")
-                 (if (string-match-p ":on_docs:" value) "$")))
         ((string= column-title "Task")
          (if (string-match alb-re-org-heading value)
              (concat (match-string 1 value) " " (match-string 4 value))))
