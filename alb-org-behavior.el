@@ -48,11 +48,6 @@
   "Title of the Org-Mode heading designated as the tree
 containing incoming tasks.")
 
-(defconst alb-org-heading-someday
-  "ZZ-Hold"
-  "Title of the Org-Mode heading designated as the tree
-containing someday/maybe tasks.")
-
 (defconst alb-re-org-date
   (concat "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}"
           " \\(?:Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\)"
@@ -101,21 +96,6 @@ start and end of line.  It consumes 5 subexpressions as follows.
   "Regexp matching the Org-Mode heading designated as the tree
 containing incoming tasks.  The regexp is anchored to the start
 and end of line, and consumes 3 subexpressions as follows.
-
-1. (optional) Asterisks
-2. (optional) Priority
-3. (optional) Tags")
-
-(defconst alb-re-org-heading-someday
-  (concat "^"
-          "\\(\\*+\\)? *"
-          alb-re-org-priority "? *"
-          alb-org-heading-someday " *"
-          "\\(:[a-z:@_]+:\\)? *"
-          "$")
-  "Regexp matching the Org-Mode heading designated as the tree
-containing someday/maybe tasks.  It is anchored to the start and
-end of line, and consumes 3 subexpressions as follows.
 
 1. (optional) Asterisks
 2. (optional) Priority
@@ -1071,15 +1051,6 @@ This function customises Org-Mode."
       (goto-char (match-beginning 0))
     (outline-next-heading)))
 
-(defun alb-org-locate-someday ()
-  "Place point at tree containing someday/maybe tasks
-
-This function customises Org-Mode."
-  (goto-char (point-min))
-  (if (re-search-forward alb-re-org-heading-someday nil t)
-      (goto-char (match-beginning 0))
-    (outline-next-heading)))
-
 (defun alb-org-locate-heading ()
   "Place point at enclosing heading, or top heading in the file
 
@@ -1108,16 +1079,6 @@ customises Org-Mode."
   (if (< (org-current-level) 2)
       (alb-org-locate-incoming))
   (outline-next-heading))
-
-(defun alb-org-locate-someday-sentinel ()
-  "Place point at someday/maybe sentinel
-
-XXX Note that this is backward in order compar3d to rest.  Insert
-TODO at start of enclosing project, or in the incoming tasks
-tree.  Therefore, places point at XXX.  This function customises
-Org-Mode."
-  (alb-org-locate-someday)
-  (org-forward-heading-same-level 1 t))
 
 (defun alb-org-locate-link-sentinel ()
   "Place point at link sentinel
