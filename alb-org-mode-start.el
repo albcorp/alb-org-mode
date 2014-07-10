@@ -233,14 +233,12 @@ This is designed to be called from the shell as follows.
     ;; Meta-data editing
     (define-key org-mode-map (kbd "C-c t") 'org-todo)
     (define-key org-mode-map (kbd "C-c :") 'org-set-tags-command)
-    (define-key org-mode-map (kbd "C-c D") 'org-deadline)
     (define-key org-mode-map (kbd "C-c S") 'org-schedule)
     (define-key org-mode-map (kbd "C-c E") 'org-set-effort)
     (define-key org-mode-map (kbd "C-c #") 'org-update-statistics-cookies)
 
     ;; Agenda views
     (define-key org-mode-map (kbd "C-c v") 'org-agenda)
-    (define-key org-mode-map (kbd "C-c /") 'org-sparse-tree)
 
     ;; Exporting and publishing
     (define-key org-mode-map (kbd "C-c e") 'org-export-dispatch)
@@ -308,17 +306,13 @@ This is designed to be called from the shell as follows.
             ("J" org-clock-goto t)
             ("Meta-data editing")
             ("t" . org-todo)
-            ("+" . org-priority-up)
-            ("-" . org-priority-down)
             (":" . org-set-tags-command)
-            ("D" . org-deadline)
             ("S" . org-schedule)
             ("E" . org-set-effort)
             ("#" . alb-org-update-headline-statistics)
             ("l" . org-store-link)
             ("Agenda views")
             ("v" . org-agenda)
-            ("/" . org-sparse-tree)
             ("Exporting and publishing")
             ("e" . org-export-dispatch)))
 
