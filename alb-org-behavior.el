@@ -59,7 +59,7 @@ containing incoming tasks.")
 consumes 0 subexpression.")
 
 (defconst alb-re-org-todo
-  "\\(TODO\\|NEXT\\|WAIT\\|DUTY\\|HOLD\\|DONE\\|STOP\\)"
+  "\\(TODO\\|NEXT\\|WAIT\\|DUTY\\|DONE\\|STOP\\)"
   "Regexp matching an Org-Mode todo state. It consumes 1
 subexpression.")
 
@@ -155,11 +155,6 @@ subexpressions.")
 (defface alb-org-keyword-duty
   '((t :foreground "CornflowerBlue" :weight bold))
   "Face used for DUTY keyword."
-  :group 'org-faces)
-
-(defface alb-org-keyword-hold
-  '((t :foreground "LightGoldenrod" :weight bold))
-  "Face used for HOLD keyword."
   :group 'org-faces)
 
 (defface alb-org-keyword-done
@@ -986,7 +981,6 @@ and elapsed time easier to follow in column view.
                ((string= value "NEXT") "n")
                ((string= value "WAIT") "w")
                ((string= value "DUTY") "u")
-               ((string= value "HOLD") "h")
                ((string= value "DONE") "D")
                ((string= value "STOP") "S")
                ))))
@@ -1112,53 +1106,41 @@ function customises Org-Mode."
 
 The rank defines the first step in an approximated reverse
 chronological order.  The rank gives the todo state an
-interpretation in this order.  All =DUTY= and =HOLD= items are
-newer than all =TODO= items, which are newer than all =NEXT=
-items, which are newer than all =WAIT= items, which are newer
-than all =DONE= and =STOP= items.  This function customises
-Org-Mode."
+interpretation in this order.  All =TODO= items are newer than
+all =NEXT= and =WAIT= items, which are newer than all =DUTY=
+items, which are newer than all =DONE= and =STOP= items.  This
+function customises Org-Mode."
   (let ((todo (cdr (assoc "TODO" properties))))
     (cond ((not todo)
            0)
-          ((or (string= todo "DUTY") (string= todo "HOLD"))
-           1)
           ((string= todo "TODO")
+           1)
+          ((or (string= todo "NEXT") (string= todo "WAIT"))
            2)
-          ((string= todo "NEXT")
+          ((string= todo "DUTY")
            3)
-          ((string= todo "WAIT")
-           4)
           ((or (string= todo "DONE") (string= todo "STOP"))
-           5))))
+           4))))
 
 (defun alb-org-sort-timestamp (properties)
   "Return the time stamp of a todo item from its PROPERTIES
 
 The timestamp defines the second step in an approximated reverse
-chronological order.  =DUTY= and =HOLD= items are timestamped by
-effort, =TODO= and =NEXT= items are timestamped by deadline, and
-timestamps for =WAIT=, =DONE=, and =STOP= items are drawn from
-the logbook.  This function customises Org-Mode."
+chronological order.  =TODO= items are timestamped by scheduled
+time, and =DONE= and =STOP= items are timestamped from the
+logbook.  All other items are set to epoch.  This function
+customises Org-Mode."
   (let ((todo (cdr (assoc "TODO" properties))))
-    (cond ((not todo)
-           '(0 0))
-          ((or (string= todo "DUTY") (string= todo "HOLD"))
-           (if (assoc "Effort" properties)
-               (let ((effort (map 'list 'string-to-number
-                                  (split-string
-                                   (cdr (assoc "Effort" properties))
-                                   ":"))))
-                 (list 0 (+ (* 3600 (car effort)) (* 60 (cadr effort)))))
-             '(0 0)))
-          ((or (string= todo "TODO") (string= todo "NEXT")
-               (string= todo "WAIT"))
-           (if (assoc "DEADLINE" properties)
-               (date-to-time (cdr (assoc "DEADLINE" properties)))
+    (cond ((string= todo "TODO")
+           (if (assoc "SCHEDULED" properties)
+               (date-to-time (cdr (assoc "SCHEDULED" properties)))
              '(0 0)))
           ((or (string= todo "DONE") (string= todo "STOP"))
            (if (assoc "TIMESTAMP_IA" properties)
                (date-to-time (cdr (assoc "TIMESTAMP_IA" properties)))
-             '(0 0))))))
+             '(0 0)))
+          ('t
+           '(0 0)))))
 
 (defun alb-org-sort-string ()
   "Generate a string for sorting the entry at point
