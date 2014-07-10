@@ -1021,13 +1021,6 @@ This function customises Org-Mode."
 ;; Capture customization
 ;;
 
-(defun alb-org-locate-top ()
-  "Place point at top heading
-
-This function customises Org-Mode."
-  (goto-char (point-min))
-  (outline-next-heading))
-
 (defun alb-org-locate-incoming ()
   "Place point at tree containing incoming tasks
 
@@ -1049,9 +1042,10 @@ This function customises Org-Mode."
   "Place point at project sentinel
 
 XXX Insert project at start of list of current projects.
-Therefore, places point before incoming tree.  This function
-customises Org-Mode."
-  (alb-org-locate-incoming))
+Therefore, places point at next tree after incoming tree.  This
+function customises Org-Mode."
+  (alb-org-locate-incoming)
+  (outline-forward-same-level 1))
 
 (defun alb-org-locate-todo-sentinel ()
   "Place point at todo sentinel
