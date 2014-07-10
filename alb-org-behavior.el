@@ -1021,8 +1021,8 @@ This function customises Org-Mode."
     (if (string-match ":\\(@[^:]*\\):" tags)
         (match-string-no-properties 1 tags))))
 
-(defun alb-org-agenda-prefix-project-tasks ()
-  "Construct a prefix for each entry in the project tasks agenda
+(defun alb-org-agenda-prefix-catalog ()
+  "Construct a prefix for each entry in the project catalog agenda
 
 This function customises Org-Mode."
   (let ((level (org-current-level)))
@@ -1032,15 +1032,6 @@ This function customises Org-Mode."
            "\n")
           ((= level 3)
            "[ ] "))))
-
-(defun alb-org-agenda-prefix-discussion-tasks ()
-  "Construct a prefix for each entry in the discussion tasks agenda
-
-This function customises Org-Mode."
-  (let* ((props (org-entry-properties))
-         (tags (cdr (assoc "TAGS" props))))
-    (if (string-match ":\\(@[^:]*\\):" tags)
-        (match-string-no-properties 1 tags))))
 
 ;;
 ;; Capture customization
