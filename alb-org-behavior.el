@@ -1002,10 +1002,30 @@ This solves a strange oversight of Org-Mode: it gives access to
 the formatted agenda item, but does not give a simple means to
 compare on the formatted entry.  This function customises
 Org-Mode."
-  (cond ((string< a b)
-         -1)
-        ((string< b a)
-         1)))
+  (let ((a-trim (alb-chomp a))
+        (b-trim (alb-chomp b)))
+      (cond ((string< a-trim b-trim)
+          -1)
+         ((string< b-trim a-trim)
+          1))))
+
+(defun alb-org-agenda-prefix-activity ()
+  "Construct a prefix for an agenda from the activity tag
+
+This function customises Org-Mode."
+  (let* ((props (org-entry-properties))
+         (tags (cdr (assoc "TAGS" props))))
+    (if (string-match ":\\(act_[^:]*\\):" tags)
+        (match-string-no-properties 1 tags))))
+
+(defun alb-org-agenda-prefix-context ()
+  "Construct a prefix for an agenda from the context tag
+
+This function customises Org-Mode."
+  (let* ((props (org-entry-properties))
+         (tags (cdr (assoc "TAGS" props))))
+    (if (string-match ":\\(@[^:]*\\):" tags)
+        (match-string-no-properties 1 tags))))
 
 (defun alb-org-agenda-prefix-project-tasks ()
   "Construct a prefix for each entry in the project tasks agenda
