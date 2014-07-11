@@ -974,18 +974,16 @@ and elapsed time easier to follow in column view.
 ;; Agenda customization
 ;;
 
-(defun alb-org-agenda-cmp (a b)
-  "Compare a pair of agenda entries after formatting
+(defun alb-org-agenda-cmp-first (a b)
+  "Compare a pair of formatted agenda entries after splitting off the first word
 
-This solves a strange oversight of Org-Mode: it gives access to
-the formatted agenda item, but does not give a simple means to
-compare on the formatted entry.  This function customises
-Org-Mode."
-  (let ((a-trim (alb-chomp a))
-        (b-trim (alb-chomp b)))
-      (cond ((string< a-trim b-trim)
+Split the formatted agenda items `a` and `b` and compare the
+first word from each.  This function customises Org-Mode."
+  (let ((a-first (nth 0 (split-string a)))
+        (b-first (nth 0 (split-string b))))
+      (cond ((string< a-first b-first)
           -1)
-         ((string< b-trim a-trim)
+         ((string< b-first a-first)
           1))))
 
 (defun alb-org-agenda-prefix-activity ()
