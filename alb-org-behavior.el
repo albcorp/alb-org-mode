@@ -1058,9 +1058,15 @@ customises Org-Mode."
   (alb-org-locate-heading)
   (while (< 2 (org-current-level))
     (outline-up-heading 1 t))
-  (if (< (org-current-level) 2)
-      (alb-org-locate-incoming))
-  (outline-next-heading))
+  (cond ((= 1 (org-current-level))
+         (alb-org-locate-incoming)
+         (outline-next-heading))
+        ((= 2 (org-current-level))
+         (outline-next-heading)
+         (while (and (= 3 (org-current-level))
+                     (string= "HOLD"
+                              (cdr (assoc "TODO" (org-entry-properties)))))
+           (outline-forward-same-level 1)))))
 
 (defun alb-org-locate-link-sentinel ()
   "Place point at link sentinel
