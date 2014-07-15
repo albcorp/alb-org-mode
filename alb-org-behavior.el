@@ -1004,6 +1004,16 @@ This function customises Org-Mode."
     (if (string-match ":\\(@[^:]*\\):" tags)
         (match-string-no-properties 1 tags))))
 
+(defun alb-org-agenda-prefix-schedule ()
+  "Construct a prefix for an agenda from the SCHEDULED value
+
+This function customises Org-Mode."
+  (let* ((props (org-entry-properties))
+         (scheduled (cdr (assoc "SCHEDULED" props))))
+    (if (stringp scheduled)
+        scheduled
+      "")))
+
 (defun alb-org-agenda-prefix-catalog ()
   "Construct a prefix for each entry in the catalog of areas of focus
 
