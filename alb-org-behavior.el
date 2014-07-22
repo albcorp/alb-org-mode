@@ -59,7 +59,7 @@ containing incoming tasks.")
 consumes 0 subexpression.")
 
 (defconst alb-re-org-todo
-  "\\(HOLD\\|TODO\\|WAIT\\|DUTY\\|DONE\\|STOP\\)"
+  "\\(DUTY\\|TODO\\|WAIT\\|HOLD\\|STOP\\|DONE\\)"
   "Regexp matching an Org-Mode todo state. It consumes 1
 subexpression.")
 
@@ -122,9 +122,9 @@ subexpressions.")
 ;; ---------------------------------------------------------------------
 ;;
 
-(defface alb-org-keyword-hold
-  '((t :foreground "grey" :weight bold))
-  "Face used for HOLD keyword."
+(defface alb-org-keyword-duty
+  '((t :foreground "CornflowerBlue" :weight bold))
+  "Face used for DUTY keyword."
   :group 'org-faces)
 
 (defface alb-org-keyword-todo
@@ -137,19 +137,19 @@ subexpressions.")
   "Face used for WAIT keyword."
   :group 'org-faces)
 
-(defface alb-org-keyword-duty
-  '((t :foreground "CornflowerBlue" :weight bold))
-  "Face used for DUTY keyword."
-  :group 'org-faces)
-
-(defface alb-org-keyword-done
-  '((t :foreground "IndianRed" :weight bold))
-  "Face used for DONE keyword."
+(defface alb-org-keyword-hold
+  '((t :foreground "grey" :weight bold))
+  "Face used for HOLD keyword."
   :group 'org-faces)
 
 (defface alb-org-keyword-stop
   '((t :foreground "grey30" :weight bold))
   "Face used for STOP keyword."
+  :group 'org-faces)
+
+(defface alb-org-keyword-done
+  '((t :foreground "IndianRed" :weight bold))
+  "Face used for DONE keyword."
   :group 'org-faces)
 
 ;;
@@ -962,13 +962,12 @@ and elapsed time easier to follow in column view.
          (if (string-match alb-re-org-heading value)
              (concat (match-string 1 value) " " (match-string 4 value))))
         ((string= column-title "X")
-         (cond ((string= value "HOLD") "h")
+         (cond ((string= value "DUTY") "u")
                ((string= value "TODO") "t")
                ((string= value "WAIT") "w")
-               ((string= value "DUTY") "u")
-               ((string= value "DONE") "D")
+               ((string= value "HOLD") "h")
                ((string= value "STOP") "S")
-               ))))
+               ((string= value "DONE") "D")))))
 
 ;;
 ;; Agenda customization
@@ -1066,13 +1065,28 @@ This function customises Org-Mode."
   (alb-org-locate-incoming)
   (outline-forward-same-level 1))
 
-(defun alb-org-locate-todo-sentinel ()
-  "Place point at todo sentinel
+(defun alb-org-locate-duty-sentinel ()
+  "Place point at DUTY sentinel
 
-Insert TODO heading at start of enclosing area of focus heading,
-or in the incoming tasks tree.  Therefore, places point at first
-child heading of the enclosing level 2 heading.  This function
-customises Org-Mode."
+Insert TODO heading in ``DUTY`` before first ``DUTY`` at start of enclosing area of
+focus heading, or in the incoming tasks tree.  Therefore, places
+point at first child heading of the enclosing level 2 heading.
+This function customises Org-Mode."
+  (alb-org-locate-heading)
+  (while (< 2 (org-current-level))
+    (outline-up-heading 1 t))
+  (if (= 1 (org-current-level))
+      (alb-org-locate-incoming))
+  (outline-next-heading))
+
+(defun alb-org-locate-todo-sentinel ()
+  "Place point at TODO sentinel
+
+Insert TODO heading in ``TODO`` before first ``TODO`` state
+heading in enclosing area of focus heading, or in the incoming
+tasks tree.  Therefore, places point at first child heading of
+the enclosing level 2 heading.  This function customises
+Org-Mode."
   (alb-org-locate-heading)
   (while (< 2 (org-current-level))
     (outline-up-heading 1 t))
@@ -1107,18 +1121,18 @@ customises Org-Mode."
 
 The rank defines the first step in an approximated reverse
 chronological order.  The rank gives the todo state an
-interpretation in this order.  All =HOLD= items are newer than
-all =TODO= and =WAIT= items, which are newer than all =DUTY=
+interpretation in this order.  All =DUTY= items are newer than
+all =HOLD= items, which are newer than all =TODO= and =WAIT=
 items, which are newer than all =DONE= and =STOP= items.  This
 function customises Org-Mode."
   (let ((todo (cdr (assoc "TODO" properties))))
     (cond ((not todo)
            0)
-          ((string= todo "HOLD")
-           1)
-          ((or (string= todo "TODO") (string= todo "WAIT"))
-           2)
           ((string= todo "DUTY")
+           1)
+          ((string= todo "HOLD")
+           2)
+          ((or (string= todo "TODO") (string= todo "WAIT"))
            3)
           ((or (string= todo "DONE") (string= todo "STOP"))
            4))))
@@ -1128,21 +1142,20 @@ function customises Org-Mode."
 
 The timestamp defines the second step in an approximated reverse
 chronological order.  =HOLD= items are timestamped by scheduled
-time.  =TODO=, =WAIT=, =DONE=, and =STOP= items are timestamped
-from the first keyword-less inactive timestamp in the entry.  In
-practice, this is the timestamp of the last TODO state
+time.  =DUTY=, =TODO=, =WAIT=, =STOP=, and =DONE= items are
+timestamped from the first keyword-less inactive timestamp in the
+entry.  In practice, this is the timestamp of the last TODO state
 transition.  All other items are set to epoch.  This function
 customises Org-Mode."
   (let ((todo (cdr (assoc "TODO" properties))))
-    (cond ((string= todo "HOLD")
-           (if (assoc "SCHEDULED" properties)
-               (date-to-time (cdr (assoc "SCHEDULED" properties)))
-             '(0 0)))
-          ((or (string= todo "TODO") (string= todo "WAIT")
-               (string= todo "DONE") (string= todo "STOP"))
-           (if (assoc "TIMESTAMP_IA" properties)
-               (date-to-time (cdr (assoc "TIMESTAMP_IA" properties)))
-             '(0 0)))
+    (cond ((and (assoc "SCHEDULED" properties)
+                (string= todo "HOLD"))
+           (date-to-time (cdr (assoc "SCHEDULED" properties))))
+          ((and (assoc "TIMESTAMP_IA" properties)
+                (or (string= todo "DUTY") (string= todo "TODO")
+                    (string= todo "WAIT") (string= todo "STOP")
+                    (string= todo "DONE")))
+           (date-to-time (cdr (assoc "TIMESTAMP_IA" properties))))
           (t
            '(0 0)))))
 
@@ -1161,6 +1174,7 @@ entry.  This function customises Org-Mode."
          (sec-lo (- #xffff (cadr timestamp)))
          (title (nth 4 (org-heading-components))))
     (concat (format "%1d#%4x-%4x#%s" rank sec-hi sec-lo title))))
+
 ;;
 ;; Widen
 ;;
