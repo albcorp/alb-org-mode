@@ -1014,6 +1014,16 @@ This function customises Org-Mode."
         scheduled
       "")))
 
+(defun alb-org-agenda-prefix-timestamp ()
+  "Construct a prefix for an agenda from the last timestamp
+
+This function customises Org-Mode."
+  (let* ((props (org-entry-properties))
+         (timestamp (cdr (assoc "TIMESTAMP_IA" props))))
+    (if (stringp timestamp)
+        timestamp
+      "")))
+
 (defun alb-org-agenda-prefix-catalog ()
   "Construct a prefix for each entry in the catalog of areas of focus
 
