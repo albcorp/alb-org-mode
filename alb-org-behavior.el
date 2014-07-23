@@ -1068,14 +1068,14 @@ This function customises Org-Mode."
 (defun alb-org-locate-duty-sentinel ()
   "Place point at DUTY sentinel
 
-Insert TODO heading in ``DUTY`` before first ``DUTY`` at start of enclosing area of
-focus heading, or in the incoming tasks tree.  Therefore, places
-point at first child heading of the enclosing level 2 heading.
-This function customises Org-Mode."
+Insert TODO heading in ``DUTY`` before first ``DUTY`` at start of
+enclosing area of focus heading, or in the incoming tasks tree.
+Therefore, places point at first child heading of the enclosing
+level 2 heading.  This function customises Org-Mode."
   (alb-org-locate-heading)
   (while (< 2 (org-current-level))
     (outline-up-heading 1 t))
-  (if (= 1 (org-current-level))
+  (if (not (= 2 (org-current-level)))
       (alb-org-locate-incoming))
   (outline-next-heading))
 
@@ -1090,15 +1090,13 @@ Org-Mode."
   (alb-org-locate-heading)
   (while (< 2 (org-current-level))
     (outline-up-heading 1 t))
-  (cond ((= 1 (org-current-level))
-         (alb-org-locate-incoming)
-         (outline-next-heading))
-        ((= 2 (org-current-level))
-         (outline-next-heading)
-         (while (and (= 3 (org-current-level))
-                     (string= "HOLD"
-                              (cdr (assoc "TODO" (org-entry-properties)))))
-           (outline-forward-same-level 1)))))
+  (if (not (= 2 (org-current-level)))
+      (alb-org-locate-incoming))
+  (outline-next-heading)
+  (while (and (= 3 (org-current-level))
+              (member (cdr (assoc "TODO" (org-entry-properties)))
+                      '("DUTY" "HOLD")))
+    (outline-forward-same-level 1)))
 
 (defun alb-org-locate-link-sentinel ()
   "Place point at link sentinel
