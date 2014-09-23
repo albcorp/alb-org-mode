@@ -1079,14 +1079,33 @@ level 2 heading.  This function customises Org-Mode."
       (alb-org-locate-incoming))
   (outline-next-heading))
 
+(defun alb-org-locate-hold-sentinel ()
+  "Place point at TODO sentinel
+
+Insert TODO heading in ``TODO`` before first ``HOLD`` state
+heading in enclosing area of focus heading, or in the incoming
+tasks tree.  Therefore, places point at first child heading of
+the enclosing level 2 heading that is not in the ``DUTY`` state.
+This function customises Org-Mode."
+  (alb-org-locate-heading)
+  (while (< 2 (org-current-level))
+    (outline-up-heading 1 t))
+  (if (not (= 2 (org-current-level)))
+      (alb-org-locate-incoming))
+  (outline-next-heading)
+  (while (and (= 3 (org-current-level))
+              (member (cdr (assoc "TODO" (org-entry-properties)))
+                      '("DUTY")))
+    (outline-forward-same-level 1)))
+
 (defun alb-org-locate-todo-sentinel ()
   "Place point at TODO sentinel
 
 Insert TODO heading in ``TODO`` before first ``TODO`` state
 heading in enclosing area of focus heading, or in the incoming
 tasks tree.  Therefore, places point at first child heading of
-the enclosing level 2 heading.  This function customises
-Org-Mode."
+the enclosing level 2 heading that is in neither a ``DUTY`` or
+``HOLD`` state.  This function customises Org-Mode."
   (alb-org-locate-heading)
   (while (< 2 (org-current-level))
     (outline-up-heading 1 t))
