@@ -50,24 +50,6 @@
       (cons '("\\.org$" . org-mode) auto-mode-alist))
 
 ;;
-;; Batch Functions
-
-(defun alb-org-publish ()
-  "Batch publish Org-Mode files and select agendas
-
-This is designed to be called from the shell as follows.
-
-    emacs \
-        --batch \
-        --load=${HOME}/.emacs \
-        --funcall=alb-org-publish \
-        --funcall=kill-emacs
-"
-  (require 'org-publish)
-  (org-publish "default")
-  (org-store-agenda-views))
-
-;;
 ;;
 ;; DEFERRED CONFIGURATION
 ;; ---------------------------------------------------------------------
