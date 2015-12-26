@@ -1,7 +1,7 @@
 ;;
-;; AlbOrgMode/alb-org-behavior.el
+;; alb-org-mode/alb-org-behavior.el
 ;;
-;;     Copyright (C) 2010-2014 Andrew Lincoln Burrow
+;;     Copyright (C) 2010-2015 Andrew Lincoln Burrow
 ;;
 ;;     This library is free software; you can redistribute it and/or
 ;;     modify it under the terms of the GNU General Public License as
