@@ -118,6 +118,74 @@ subexpressions.")
 
 ;;
 ;;
+;; CUSTOMISATION
+;; ---------------------------------------------------------------------
+;;
+
+(defgroup alb-org nil
+  "Customise aspects of Org-Mode for albcorp"
+  :group 'org)
+
+(defcustom alb-org-abbrev-separtr-re
+  "[-_~ \t\n\r,;]+"
+  "Regexp used to split the string-to-abbreviate into words"
+  :group 'alb-org
+  :type 'regexp)
+
+(defcustom alb-org-abbrev-illegal-re
+  "[^-_a-zA-Z0-9+]"
+  "Regexp used to recognise illegal characters in the string-to-abbreviate"
+  :group 'alb-org
+  :type 'regexp)
+
+(defcustom alb-org-abbrev-ignore-words
+  '("the" "on" "in" "off" "a" "for" "by" "of" "and" "is" "to" "with")
+  "List of words to be removed from the string-to-abbreviate"
+  :group 'alb-org
+  :type '(repeat string))
+
+(defcustom alb-org-abbrev-words-max
+  5
+  "Maximum number of words to use"
+  :group 'alb-org
+  :type 'integer)
+
+(defcustom alb-org-abbrev-chars-max
+  30
+  "Maximum number of characters in the abbreviated string"
+  :group 'alb-org
+  :type 'integer)
+
+(defcustom alb-org-abbrev-separator
+  "_"
+  "String separating different words in the abbreviated string")
+
+(defcustom alb-org-project-dirname-patterns
+  '(("^Work on =\\([A-Z]+-[0-9]+\\)=: \\*\\([^*]+\\)\\*\\s-:foc_\\([^:]*\\):*.*$"
+     . "~/Desktop/10-Files/\\3/\\1")
+    ("^Work on =\\([a-z_-]+\\)= issue \\([0-9]+\\)\\: \\*\\([^*]+\\)\\*\\s-:foc_\\([^:]*\\):*.*$"
+     . "~/Desktop/10-Files/\\4/\\1/\\2")
+    ("^\\(.*\\)\\s-+:foc_\\([^:]*\\):*.*$"
+     . "~/Desktop/10-Files/\\2/<<\\1>>")
+    ("^.*$"
+     . "~/Desktop/10-Files"))
+  "Pattern-replacement pairs to transform headings to project directory names
+
+Each pair comprises a regular expression and a replacement
+string.  These are passed to `replace-regexp-in-string`, and then
+each string enclosed inside double angle brackets is transformed
+using `alb-org-abbrev`.  The input text is the concatenation of
+the heading without its TODO keywords and tags, a space, and all
+inherited tags as returned by `org-entry-properties`.  The
+patterns are tested in turn, and the first pattern that matches
+the input is transformed into the project directory filename.
+You should include a pair that matches all inputs, and outputs
+the default directory."
+  :group 'alb-org
+  :type '(repeat (cons regexp string)))
+
+;;
+;;
 ;; FACE DECLARATIONS
 ;; ---------------------------------------------------------------------
 ;;
@@ -168,6 +236,65 @@ subexpressions.")
                                     (: (* (any " \t\n")) eos)))
                             ""
                             str))
+
+(defun alb-org-abbrev (input)
+  "Convert INPUT (a sentence) to a suitable abbreviation.  In
+particular, an abbreviation for the basename of a file.
+
+See `alb-org-abbrev-separtr-re`, `alb-org-abbrev-illegal-re`,
+`alb-org-abbrev-ignore-words`, `alb-org-abbrev-words-max`,
+`alb-org-abbrev-chars-max`, and `alb-org-abbrev-separator` for
+the customisable parameters.
+
+Copied in spirit from \"reftex.el\"."
+  (let ((init-words (split-string input alb-org-abbrev-separtr-re))
+        final-words
+        word
+        (abbrev-re  (concat
+                     "\\`\\("
+                     (make-string 4 ?.) ; Minimum chars to include.
+                     "[^aeiou]*"        ; Chars before abbrev point in word.
+                     "\\)"
+                     "[aeiou]"          ; Chars after  abbrev point in word.
+                     (make-string 1 ?.) ; Minimum chars to exclude.
+                     )))
+    ;; Remove words from the ignore list or with funny characters.
+    (while (setq word (pop init-words))
+      (setq word (downcase word))
+      (cond
+       ((member word alb-org-abbrev-ignore-words)
+        )
+       ((string-match alb-org-abbrev-illegal-re word)
+        (setq word (replace-match "" nil nil word))
+        (while (string-match alb-org-abbrev-illegal-re word)
+          (setq word (replace-match "" nil nil word)))
+        (push word final-words))
+       (t
+        (push word final-words))))
+    (setq final-words (nreverse final-words))
+
+    ;; Restrict number of words.
+    (if (> (length final-words) alb-org-abbrev-words-max)
+        (setcdr (nthcdr (1- alb-org-abbrev-words-max) final-words) nil))
+
+    ;; Abbreviate words.
+    (setq final-words
+          (mapcar
+           (function
+            (lambda (w) (if (string-match abbrev-re w)
+                            (match-string 1 w)
+                          w)))
+           final-words))
+
+    ;; Construct string with alb-org-abbrev-separators.
+    (setq input
+          (mapconcat 'identity final-words alb-org-abbrev-separator))
+
+    ;; Shorten if still too long.
+    (setq input
+          (if (> (length input) alb-org-abbrev-chars-max)
+              (substring input 0 alb-org-abbrev-chars-max)
+            input))))
 
 ;;
 ;; Whitespace cleanup
@@ -1300,6 +1427,52 @@ update, removes it. Repairs the positions of the tags."
                   (search-forward "[0/0]")
                   (replace-match "")))))
       (org-set-tags nil t))))
+
+;;
+;; Project filing
+;;
+
+(defun alb-org--project-dirname-visit (patterns text)
+  "Recur on the project directory name PATTERNS to locate match for TEXT"
+  (cond
+   ((not patterns)
+    "~/")
+   ((string-match-p (caar patterns) text)
+    (let ((fname (replace-regexp-in-string (caar patterns) (cdar patterns)
+                                           text)))
+      (while (string-match "<<\\(.*?\\)>>" fname)
+        (let ((old (match-string 0 fname))
+              (new (alb-org-abbrev (match-string 1 fname))))
+          (setq fname (replace-regexp-in-string old new fname t t))))
+      fname))
+   (t
+    (alb-org--project-dirname-visit (cdr patterns) text))))
+
+(defun alb-org-project-dirname ()
+  "Determine the filename of the project directory"
+  (interactive)
+  (alb-org--project-dirname-visit
+   alb-org-project-dirname-patterns
+   (substring-no-properties (concat (org-get-heading t t) " "
+                                    (cdr (assoc "ALLTAGS"
+                                                (org-entry-properties)))))))
+
+(defun alb-org--project-files-visit (filename)
+  "Recur on the parents of FILENAME to locate accessible directory"
+  (if (file-accessible-directory-p filename)
+      (find-name-dired filename "*")
+    (alb-org--project-files-visit (directory-file-name
+                                   (file-name-directory filename)))))
+
+(defun alb-org-project-files ()
+  "Interact with the project files using `dired`"
+  (interactive)
+  (alb-org--project-files-visit (expand-file-name (alb-org-project-dirname))))
+
+(defun alb-org-project-readme ()
+  "Visit the project README file"
+  (interactive)
+  (find-file (concat (alb-org-project-dirname) "/README.rst")))
 
 ;; Local Variables:
 ;; mode: emacs-lisp
