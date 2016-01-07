@@ -5,7 +5,7 @@ README.AlbOrgMode
 :Precis: Emacs lisp to configure Org-Mode for albcorp
 :Authors: Andrew Lincoln Burrow
 :Contact: albcorp@gmail.com
-:Copyright: 2010-2012, 2015 Andrew Lincoln Burrow
+:Copyright: 2010-2012, 2015-2016 Andrew Lincoln Burrow
 :Version: 0.9.1
 
 --------
@@ -48,7 +48,6 @@ the emacs lisp files.  The repository contains helper scripts to achieve
 these ends.
 
 ``alb-org-mode-start.el``
-
   This emacs lisp code can be sourced from your personal emacs init
   file.  It updates the load path, and sets hooks to load the key map.
 

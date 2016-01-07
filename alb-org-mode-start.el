@@ -1,7 +1,7 @@
 ;;
 ;; alb-org-mode/alb-org-mode-start.el
 ;;
-;;     Copyright (C) 2010-2015 Andrew Lincoln Burrow
+;;     Copyright (C) 2010-2016 Andrew Lincoln Burrow
 ;;
 ;;     This library is free software; you can redistribute it and/or
 ;;     modify it under the terms of the GNU General Public License as
@@ -295,6 +295,9 @@
             ("E" . org-set-effort)
             ("#" . alb-org-update-headline-statistics)
             ("l" . org-store-link)
+            ("Project files")
+            ("~" . alb-org-project-files)
+            ("!" . alb-org-project-readme)
             ("Agenda views")
             ("v" . org-agenda)
             ("Exporting and publishing")
