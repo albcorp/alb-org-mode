@@ -6,7 +6,6 @@ README.AlbOrgMode
 :Authors: Andrew Lincoln Burrow
 :Contact: albcorp@gmail.com
 :Copyright: 2010-2012, 2015-2016 Andrew Lincoln Burrow
-:Version: 0.9.1
 
 --------
 Overview
