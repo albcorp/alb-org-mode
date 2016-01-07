@@ -1206,42 +1206,6 @@ entry.  This function customises Org-Mode."
 ;; XXX Structure navigation
 ;;
 
-(defun alb-org-end ()
-  "Move to the start of the content beneath the headline
-
-Places the point on the first non-whitespace character after the
-metadata. If there is content, point is placed at the first
-non-whitespace character, and indents the line. Otherwise, it
-ensures there are three blank lines, indents the second blank
-line, and places the cursor at the end of the second blank line."
-  (interactive)
-  (if (org-before-first-heading-p)
-      (outline-next-heading)
-    (outline-back-to-heading))
-  (org-show-entry)
-  (let* ((succ-pos (save-excursion      ; Start of successor headline
-                     (outline-next-heading)
-                     (point)))
-         (eofp-pos (save-excursion      ; End of headline properties
-                     (looking-at alb-re-org-heading)
-                     (goto-char (match-end 0))
-                     (looking-at alb-re-org-metadata)
-                     (match-end 0)))
-         (indt-pos (save-excursion      ; Start of indented content
-                     (goto-char eofp-pos)
-                     (if (looking-at "\\(?:\n[ \t]*\\)*\\([^[:space:]]\\)")
-                         (match-beginning 1)
-                       succ-pos))))
-    (if (< indt-pos succ-pos)
-        (progn (goto-char indt-pos)
-               (indent-according-to-mode))
-      (progn (goto-char eofp-pos)
-             (forward-line)
-             (delete-region (point) succ-pos)
-             (newline 3)
-             (forward-line -2)
-             (indent-according-to-mode)))))
-
 ;;
 ;; XXX Structure navigation
 ;;
