@@ -1203,11 +1203,7 @@ entry.  This function customises Org-Mode."
   (recenter))
 
 ;;
-;; XXX Structure navigation
-;;
-
-;;
-;; XXX Structure navigation
+;; Structure editing
 ;;
 
 (defun alb-org-insert-heading-before ()
@@ -1235,7 +1231,7 @@ entry.  This function customises Org-Mode."
     (insert stars)))
 
 ;;
-;; XXX Structure navigation
+;; Content editing
 ;;
 
 (defun alb-org-newline-before ()
@@ -1250,8 +1246,23 @@ entry.  This function customises Org-Mode."
   (save-excursion (beginning-of-line 2)
                   (newline)))
 
+(defun alb-org-insert-item ()
+  "Insert a list item."
+  (interactive)
+  (org-insert-item nil))
+
+(defun alb-org-insert-checkbox ()
+  "Insert a check boxed list item."
+  (interactive)
+  (org-insert-item t))
+
+(defun alb-org-toggle-checkbox (&optional toggle-presence)
+  "Toggle a check boxed list item."
+  (interactive "P")
+  (org-toggle-checkbox toggle-presence))
+
 ;;
-;; XXX Structure navigation
+;; Meta-data editing
 ;;
 
 (defun alb-org-update-headline-statistics ()
@@ -1289,25 +1300,6 @@ update, removes it. Repairs the positions of the tags."
                   (search-forward "[0/0]")
                   (replace-match "")))))
       (org-set-tags nil t))))
-
-;;
-;; List edits
-;;
-
-(defun alb-org-insert-item ()
-  "Insert a list item."
-  (interactive)
-  (org-insert-item nil))
-
-(defun alb-org-insert-checkbox ()
-  "Insert a check boxed list item."
-  (interactive)
-  (org-insert-item t))
-
-(defun alb-org-toggle-checkbox (&optional toggle-presence)
-  "Toggle a check boxed list item."
-  (interactive "P")
-  (org-toggle-checkbox toggle-presence))
 
 ;; Local Variables:
 ;; mode: emacs-lisp
