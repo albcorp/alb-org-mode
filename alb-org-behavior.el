@@ -165,7 +165,7 @@ subexpressions.")
      . "~/Desktop/10-Files/\\3/\\1")
     ("^Work on =\\([a-z_-]+\\)= issue \\([0-9]+\\)\\: \\*\\([^*]+\\)\\*\\s-:foc_\\([^:]*\\):*.*$"
      . "~/Desktop/10-Files/\\4/\\1/\\2")
-    ("^\\(.*\\)\\s-+:foc_\\([^:]*\\):*.*$"
+    ("^\\(.*\\)\\s-+:foc_\\([^:]*\\):.*$"
      . "~/Desktop/10-Files/\\2/<<\\1>>")
     ("^.*$"
      . "~/Desktop/10-Files"))
@@ -1439,11 +1439,11 @@ update, removes it. Repairs the positions of the tags."
     "~/")
    ((string-match-p (caar patterns) text)
     (let ((fname (replace-regexp-in-string (caar patterns) (cdar patterns)
-                                           text)))
+                                           text t)))
       (while (string-match "<<\\(.*?\\)>>" fname)
-        (let ((old (match-string 0 fname))
+        (let ((old (regexp-quote (match-string 0 fname)))
               (new (alb-org-abbrev (match-string 1 fname))))
-          (setq fname (replace-regexp-in-string old new fname t t))))
+          (setq fname (replace-regexp-in-string old new fname t))))
       fname))
    (t
     (alb-org--project-dirname-visit (cdr patterns) text))))
