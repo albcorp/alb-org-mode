@@ -1,7 +1,7 @@
 ;;
 ;; alb-org-mode/alb-org-behavior.el
 ;;
-;;     Copyright (C) 2010-2015 Andrew Lincoln Burrow
+;;     Copyright (C) 2010-2016 Andrew Lincoln Burrow
 ;;
 ;;     This library is free software; you can redistribute it and/or
 ;;     modify it under the terms of the GNU General Public License as
@@ -162,12 +162,12 @@ subexpressions.")
 ;; String functions
 ;;
 
-(defun alb-chomp (str)
-      "Chomp leading and tailing whitespace from STR."
-      (replace-regexp-in-string (rx (or (: bos (* (any " \t\n")))
-                                        (: (* (any " \t\n")) eos)))
-                                ""
-                                str))
+(defun alb-org-chomp (str)
+  "Chomp leading and tailing whitespace from STR."
+  (replace-regexp-in-string (rx (or (: bos (* (any " \t\n")))
+                                    (: (* (any " \t\n")) eos)))
+                            ""
+                            str))
 
 ;;
 ;; Whitespace cleanup
