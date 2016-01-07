@@ -990,7 +990,7 @@ first word from each.  This function customises Org-Mode."
 
 This function customises Org-Mode."
   (let* ((props (org-entry-properties))
-         (tags (cdr (assoc "TAGS" props))))
+         (tags (cdr (assoc "ALLTAGS" props))))
     (if (string-match ":\\(act_[^:]*\\):" tags)
         (match-string-no-properties 1 tags))))
 
@@ -999,7 +999,7 @@ This function customises Org-Mode."
 
 This function customises Org-Mode."
   (let* ((props (org-entry-properties))
-         (tags (cdr (assoc "TAGS" props))))
+         (tags (cdr (assoc "ALLTAGS" props))))
     (if (string-match ":\\(@[^:]*\\):" tags)
         (match-string-no-properties 1 tags))))
 
