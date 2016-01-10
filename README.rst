@@ -67,6 +67,19 @@ these ends.
   Change the filename ``${HOME}/Config`` to suit your personal
   directory structure.
 
+Configuration
+=============
+
+The minimal installation of *AlbOrgMode* does not impose any new
+configuration on Org-Mode.  This section briefly describes how to
+configure Org-Mode to make use of the features in *AlbOrgMode*.
+
+Load the *AlbOrgMode* key bindings by adding the following fragment to
+``~/.emacs``
+
+::
+   (add-hook 'org-mode-hook `alb-org-key-bindings)
+
 .. Local Variables:
 .. mode: rst
 .. ispell-local-dictionary: "british"
