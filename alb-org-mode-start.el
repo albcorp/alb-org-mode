@@ -63,7 +63,6 @@
     ;; Require functions to customise behavior
     (require 'alb-org-behavior)))
 
-
 ;; Local Variables:
 ;; mode: emacs-lisp
 ;; End:
