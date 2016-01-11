@@ -467,7 +467,7 @@ Org-Mode by realising the following principles.
          ("l" . org-store-link)
          ("Project files")
          ("~" . alb-org-project-files)
-         ("!" . alb-org-project-readme)
+         ("R" . alb-org-project-readme)
          ("Agenda views")
          ("v" . org-agenda)
          ("Exporting and publishing")
