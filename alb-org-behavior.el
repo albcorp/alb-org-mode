@@ -382,7 +382,6 @@ Org-Mode by realising the following principles.
  (define-key org-mode-map (kbd "C-c I") 'org-clock-in)
  (define-key org-mode-map (kbd "C-c O") 'org-clock-out)
  (define-key org-mode-map (kbd "C-c X") 'org-clock-cancel)
- (define-key org-mode-map (kbd "C-c J") 'org-clock-goto)
 
  ;; Meta-data editing
  (define-key org-mode-map (kbd "C-c t") 'org-todo)
@@ -457,7 +456,6 @@ Org-Mode by realising the following principles.
          ("I" . org-clock-in)
          ("O" . org-clock-out)
          ("X" . org-clock-cancel)
-         ("J" org-clock-goto t)
          ("Meta-data editing")
          ("t" . org-todo)
          (":" . org-set-tags-command)
