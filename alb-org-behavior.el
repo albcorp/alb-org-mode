@@ -343,8 +343,13 @@ Org-Mode by realising the following principles.
 
  ;; Outline visibility
  (define-key org-mode-map (kbd "TAB") 'org-cycle)
+ (define-key org-mode-map (kbd "C-c 1") 'alb-org-show-level-1)
+ (define-key org-mode-map (kbd "C-c 2") 'alb-org-show-level-2)
+ (define-key org-mode-map (kbd "C-c 3") 'alb-org-show-level-3)
+ (define-key org-mode-map (kbd "C-c 4") 'alb-org-show-level-4)
+ (define-key org-mode-map (kbd "C-c 5") 'alb-org-show-level-5)
  (define-key org-mode-map (kbd "C-c >") 'org-narrow-to-subtree)
- (define-key org-mode-map (kbd "C-c <") 'widen)
+ (define-key org-mode-map (kbd "C-c <") 'alb-org-widen)
  (define-key org-mode-map (kbd "C-c C") 'org-columns)
 
  ;; Outline navigation
@@ -427,11 +432,11 @@ Org-Mode by realising the following principles.
          ("?" . org-speed-command-help)
          ("s" . org-save-all-org-buffers)
          ("Outline visibility")
-         ("1" . (progn (org-shifttab 1) (outline-back-to-heading)))
-         ("2" . (progn (org-shifttab 2) (outline-back-to-heading)))
-         ("3" . (progn (org-shifttab 3) (outline-back-to-heading)))
-         ("4" . (progn (org-shifttab 4) (outline-back-to-heading)))
-         ("5" . (progn (org-shifttab 5) (outline-back-to-heading)))
+         ("1" . alb-org-show-level-1)
+         ("2" . alb-org-show-level-2)
+         ("3" . alb-org-show-level-3)
+         ("4" . alb-org-show-level-4)
+         ("5" . alb-org-show-level-5)
          ("0" . show-all)
          (">" . org-narrow-to-subtree)
          ("<" . alb-org-widen)
@@ -826,6 +831,36 @@ This function customises Org-Mode."
 ;;
 ;; Outline visibility
 ;;
+
+(defun alb-org-show-level-1 ()
+    "Set folding to show only level 1 headings"
+  (interactive)
+  (org-shifttab 1)
+  (outline-back-to-heading))
+
+(defun alb-org-show-level-2 ()
+    "Set folding to show only level 1 and 2 headings"
+  (interactive)
+  (org-shifttab 2)
+  (outline-back-to-heading))
+
+(defun alb-org-show-level-3 ()
+    "Set folding to show only level 1 to 3 headings"
+  (interactive)
+  (org-shifttab 3)
+  (outline-back-to-heading))
+
+(defun alb-org-show-level-4 ()
+    "Set folding to show only level 1 to 4 headings"
+  (interactive)
+  (org-shifttab 4)
+  (outline-back-to-heading))
+
+(defun alb-org-show-level-5 ()
+    "Set folding to show only level 1 to 5 headings"
+  (interactive)
+  (org-shifttab 5)
+  (outline-back-to-heading))
 
 (defun alb-org-widen ()
   "Widen to the whole buffer and centre the headline"
