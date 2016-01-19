@@ -1051,6 +1051,23 @@ Org-Mode."
                   (and (outline-on-heading-p)
                        (point))))
 
+(defun alb-org-up-heading ()
+  "Move to the parent heading
+
+Search backward for the first visible ancestor heading.  Place
+point at the first character of the located heading.  This
+function customises Org-Mode."
+  (interactive)
+  (let* ((curr-pos (point))
+         (head-pos (alb-org-head-pos curr-pos))
+         (text-pos (alb-org-text-pos head-pos))
+         (next-pos (if (= curr-pos head-pos)
+                       (alb-org-up-heading-pos head-pos)
+                     (or (alb-org-visible-pos head-pos)
+                         (alb-org-up-heading-pos head-pos)))))
+    (if next-pos
+        (goto-char next-pos))))
+
 (defun alb-org-up-structure ()
   "Move backward out one level of Org-Mode structure
 
@@ -1133,6 +1150,21 @@ function customises Org-Mode."
                     (and (outline-on-heading-p)
                          (< curr-level (org-current-level))
                          (point)))))
+
+(defun alb-org-down-heading ()
+  "Move to the first child heading
+
+Search forward for the first visible descendant heading.  Place
+point at the first character of the located heading.  This
+function customises Org-Mode."
+  (interactive)
+  (if (outline-invisible-p)
+      (alb-org-up-structure))
+  (let* ((curr-pos (point))
+         (head-pos (alb-org-head-pos curr-pos))
+         (next-pos (alb-org-down-heading-pos head-pos)))
+    (if next-pos
+        (goto-char next-pos))))
 
 (defun alb-org-down-structure ()
   "Move down one level of Org-Mode structure
@@ -1575,37 +1607,6 @@ enclosing list.  This function customises Org-Mode."
     (if next-pos
       (goto-char next-pos))))
 
-(defun alb-org-up-heading ()
-  "Move to the parent heading
-
-Search backward for the first visible ancestor heading.  Place
-point at the first character of the located heading.  This
-function customises Org-Mode."
-  (interactive)
-  (let* ((curr-pos (point))
-         (head-pos (alb-org-head-pos curr-pos))
-         (text-pos (alb-org-text-pos head-pos))
-         (next-pos (if (= curr-pos head-pos)
-                       (alb-org-up-heading-pos head-pos)
-                     (or (alb-org-visible-pos head-pos)
-                         (alb-org-up-heading-pos head-pos)))))
-    (if next-pos
-        (goto-char next-pos))))
-
-(defun alb-org-down-heading ()
-  "Move to the first child heading
-
-Search forward for the first visible descendant heading.  Place
-point at the first character of the located heading.  This
-function customises Org-Mode."
-  (interactive)
-  (if (outline-invisible-p)
-      (alb-org-up-structure))
-  (let* ((curr-pos (point))
-         (head-pos (alb-org-head-pos curr-pos))
-         (next-pos (alb-org-down-heading-pos head-pos)))
-    (if next-pos
-        (goto-char next-pos))))
 
 ;;
 ;; Outline structure editing
