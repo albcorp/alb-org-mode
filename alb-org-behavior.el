@@ -348,6 +348,12 @@ Org-Mode by realising the following principles.
  (define-key org-mode-map (kbd "C-c C") 'org-columns)
 
  ;; Outline navigation
+ (define-key org-mode-map (kbd "C-c u") 'alb-org-up-heading)
+ (define-key org-mode-map (kbd "C-c d") 'alb-org-down-heading)
+ (define-key org-mode-map (kbd "C-c b") 'org-backward-heading-same-level)
+ (define-key org-mode-map (kbd "C-c f") 'org-forward-heading-same-level)
+ (define-key org-mode-map (kbd "C-c p") 'outline-previous-visible-heading)
+ (define-key org-mode-map (kbd "C-c n") 'outline-next-visible-heading)
  (define-key org-mode-map (kbd "C-M-u") 'alb-org-up-structure)
  (define-key org-mode-map (kbd "ESC C-u") 'alb-org-up-structure)
  (define-key org-mode-map (kbd "C-M-d") 'alb-org-down-structure)
@@ -360,12 +366,6 @@ Org-Mode by realising the following principles.
  (define-key org-mode-map (kbd "ESC C-p") 'alb-org-prev-structure)
  (define-key org-mode-map (kbd "C-M-n") 'alb-org-next-structure)
  (define-key org-mode-map (kbd "ESC C-n") 'alb-org-next-structure)
- (define-key org-mode-map (kbd "C-c u") 'alb-org-up-heading)
- (define-key org-mode-map (kbd "C-c d") 'alb-org-down-heading)
- (define-key org-mode-map (kbd "C-c b") 'org-backward-heading-same-level)
- (define-key org-mode-map (kbd "C-c f") 'org-forward-heading-same-level)
- (define-key org-mode-map (kbd "C-c p") 'outline-previous-visible-heading)
- (define-key org-mode-map (kbd "C-c n") 'outline-next-visible-heading)
  (define-key org-mode-map (kbd "C-a") 'org-beginning-of-line)
  (define-key org-mode-map (kbd "C-e") 'org-end-of-line)
  (define-key org-mode-map (kbd "C-c o") 'org-open-at-point)
@@ -390,6 +390,8 @@ Org-Mode by realising the following principles.
  (define-key org-mode-map (kbd "C-c E") 'org-set-effort)
  (define-key org-mode-map (kbd "C-c #") 'org-update-statistics-cookies)
 
+ ;; Project filing
+
  ;; Agenda views
  (define-key org-mode-map (kbd "C-c v") 'org-agenda)
 
@@ -397,7 +399,7 @@ Org-Mode by realising the following principles.
  (define-key org-mode-map (kbd "C-c e") 'org-export-dispatch)
 
  ;; Content editing
- (define-key org-mode-map (kbd "C-c L") 'org-insert-link)
+ (define-key org-mode-map (kbd "C-c l") 'org-insert-link)
  (define-key org-mode-map (kbd "C-c !") 'org-time-stamp-inactive)
  (define-key org-mode-map (kbd "S-<up>") 'org-timestamp-up)
  (define-key org-mode-map (kbd "S-<down>") 'org-timestamp-down)
@@ -462,8 +464,8 @@ Org-Mode by realising the following principles.
          ("S" . org-schedule)
          ("E" . org-set-effort)
          ("#" . alb-org-update-headline-statistics)
-         ("l" . org-store-link)
-         ("Project files")
+         ("L" . org-store-link)
+         ("Project filing")
          ("~" . alb-org-project-files)
          ("R" . alb-org-project-readme)
          ("Agenda views")
