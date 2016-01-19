@@ -575,6 +575,265 @@ Add `alb-org-whitespace-cleanup` to the buffer local
   (add-hook 'write-contents-functions 'alb-org-whitespace-cleanup))
 
 ;;
+;; Heading sorting
+;;
+
+(defun alb-org-sort-rank (properties)
+  "Return the rank of a todo item from its PROPERTIES
+
+The rank defines the first step in an approximated reverse
+chronological order.  The rank gives the todo state an
+interpretation in this order.  All =DUTY= items are newer than
+all =HOLD= items, which are newer than all =TODO= and =WAIT=
+items, which are newer than all =DONE= and =STOP= items.  This
+function customises Org-Mode."
+  (let ((todo (cdr (assoc "TODO" properties))))
+    (cond ((not todo)
+           0)
+          ((string= todo "DUTY")
+           1)
+          ((string= todo "HOLD")
+           2)
+          ((or (string= todo "TODO") (string= todo "WAIT"))
+           3)
+          ((or (string= todo "DONE") (string= todo "STOP"))
+           4))))
+
+(defun alb-org-sort-timestamp (properties)
+  "Return the time stamp of a todo item from its PROPERTIES
+
+The timestamp defines the second step in an approximated reverse
+chronological order.  =HOLD= items are timestamped by scheduled
+time.  =DUTY=, =TODO=, =WAIT=, =STOP=, and =DONE= items are
+timestamped from the first keyword-less inactive timestamp in the
+entry.  In practice, this is the timestamp of the last TODO state
+transition.  All other items are set to epoch.  This function
+customises Org-Mode."
+  (let ((todo (cdr (assoc "TODO" properties))))
+    (cond ((and (assoc "SCHEDULED" properties)
+                (string= todo "HOLD"))
+           (date-to-time (cdr (assoc "SCHEDULED" properties))))
+          ((and (assoc "TIMESTAMP_IA" properties)
+                (or (string= todo "DUTY") (string= todo "TODO")
+                    (string= todo "WAIT") (string= todo "STOP")
+                    (string= todo "DONE")))
+           (date-to-time (cdr (assoc "TIMESTAMP_IA" properties))))
+          (t
+           '(0 0)))))
+
+(defun alb-org-sort-string ()
+  "Generate a string for sorting the entry at point
+
+Returns a string that can be sorted alphabetically to retrieve
+the lexical order over the rank of the todo state as defined by
+`alb-org-sort-rank`, the reverse of the time of the todo item as
+defined by `alb-org-sort-timestamp`, and the heading of the
+entry.  This function customises Org-Mode."
+  (let* ((properties (org-entry-properties))
+         (rank (alb-org-sort-rank properties))
+         (timestamp (alb-org-sort-timestamp properties))
+         (sec-hi (- #xffff (car timestamp)))
+         (sec-lo (- #xffff (cadr timestamp)))
+         (title (nth 4 (org-heading-components))))
+    (concat (format "%1d#%4x-%4x#%s" rank sec-hi sec-lo title))))
+
+;;
+;; Column view customization
+;;
+
+(defun alb-org-columns-modify-value-for-display-function (column-title value)
+  "Modify values for display in column view
+
+The mappings are designed to make schedules, effort estimates,
+and elapsed time easier to follow in column view.
+
+- when COLUMN-TITLE is =Task= remove tags from =ITEM= value; and
+- when COLUMN-TITLE is =Project= remove tags from =ITEM= value."
+  (cond ((string= column-title "Project")
+         (if (string-match alb-re-org-heading value)
+             (concat (match-string 1 value) " " (match-string 4 value))))
+        ((string= column-title "Task")
+         (if (string-match alb-re-org-heading value)
+             (concat (match-string 1 value) " " (match-string 4 value))))
+        ((string= column-title "X")
+         (cond ((string= value "DUTY") "u")
+               ((string= value "TODO") "t")
+               ((string= value "WAIT") "w")
+               ((string= value "HOLD") "h")
+               ((string= value "STOP") "S")
+               ((string= value "DONE") "D")))))
+
+;;
+;; Capture customization
+;;
+
+(defun alb-org-locate-incoming ()
+  "Place point at tree containing incoming tasks
+
+This function customises Org-Mode."
+  (goto-char (point-min))
+  (if (re-search-forward alb-re-org-heading-incoming nil t)
+      (goto-char (match-beginning 0))
+    (outline-next-heading)))
+
+(defun alb-org-locate-heading ()
+  "Place point at enclosing heading, or top heading in the file
+
+This function customises Org-Mode."
+  (if (org-before-first-heading-p)
+      (outline-next-heading)
+    (outline-back-to-heading t)))
+
+(defun alb-org-locate-focus-sentinel ()
+  "Place point at focus sentinel
+
+Insert area of focus heading at start of list of areas of focus.
+Therefore, places point at first tree after the incoming tree.
+This function customises Org-Mode."
+  (alb-org-locate-incoming)
+  (outline-forward-same-level 1))
+
+(defun alb-org-locate-duty-sentinel ()
+  "Place point at DUTY sentinel
+
+Insert TODO heading in ``DUTY`` before first ``DUTY`` at start of
+enclosing area of focus heading, or in the incoming tasks tree.
+Therefore, places point at first child heading of the enclosing
+level 2 heading.  This function customises Org-Mode."
+  (alb-org-locate-heading)
+  (while (< 2 (org-current-level))
+    (outline-up-heading 1 t))
+  (if (not (= 2 (org-current-level)))
+      (alb-org-locate-incoming))
+  (outline-next-heading))
+
+(defun alb-org-locate-hold-sentinel ()
+  "Place point at TODO sentinel
+
+Insert TODO heading in ``TODO`` before first ``HOLD`` state
+heading in enclosing area of focus heading, or in the incoming
+tasks tree.  Therefore, places point at first child heading of
+the enclosing level 2 heading that is not in the ``DUTY`` state.
+This function customises Org-Mode."
+  (alb-org-locate-heading)
+  (while (< 2 (org-current-level))
+    (outline-up-heading 1 t))
+  (if (not (= 2 (org-current-level)))
+      (alb-org-locate-incoming))
+  (outline-next-heading)
+  (while (and (= 3 (org-current-level))
+              (member (cdr (assoc "TODO" (org-entry-properties)))
+                      '("DUTY")))
+    (outline-forward-same-level 1)))
+
+(defun alb-org-locate-todo-sentinel ()
+  "Place point at TODO sentinel
+
+Insert TODO heading in ``TODO`` before first ``TODO`` state
+heading in enclosing area of focus heading, or in the incoming
+tasks tree.  Therefore, places point at first child heading of
+the enclosing level 2 heading that is in neither a ``DUTY`` or
+``HOLD`` state.  This function customises Org-Mode."
+  (alb-org-locate-heading)
+  (while (< 2 (org-current-level))
+    (outline-up-heading 1 t))
+  (if (not (= 2 (org-current-level)))
+      (alb-org-locate-incoming))
+  (outline-next-heading)
+  (while (and (= 3 (org-current-level))
+              (member (cdr (assoc "TODO" (org-entry-properties)))
+                      '("DUTY" "HOLD")))
+    (outline-forward-same-level 1)))
+
+(defun alb-org-locate-link-sentinel ()
+  "Place point at link sentinel
+
+XXX Insert link at start of enclosing TODO heading or area of
+focus heading, or in the incoming tasks tree.  This function
+customises Org-Mode."
+  (alb-org-locate-heading)
+  (while (< 3 (org-current-level))
+    (outline-up-heading 1 t))
+  (org-show-entry)
+  (alb-org-down-structure))
+
+;;
+;; Agenda customization
+;;
+
+(defun alb-org-agenda-cmp-first (a b)
+  "Compare a pair of formatted agenda entries after splitting off the first word
+
+Split the formatted agenda items `a` and `b` and compare the
+first word from each.  This function customises Org-Mode."
+  (let ((a-first (nth 0 (split-string a)))
+        (b-first (nth 0 (split-string b))))
+      (cond ((string< a-first b-first)
+          -1)
+         ((string< b-first a-first)
+          1))))
+
+(defun alb-org-agenda-prefix-activity ()
+  "Construct a prefix for an agenda from the activity tag
+
+This function customises Org-Mode."
+  (let* ((props (org-entry-properties))
+         (tags (cdr (assoc "ALLTAGS" props))))
+    (if (string-match ":\\(act_[^:]*\\):" tags)
+        (match-string-no-properties 1 tags))))
+
+(defun alb-org-agenda-prefix-context ()
+  "Construct a prefix for an agenda from the context tag
+
+This function customises Org-Mode."
+  (let* ((props (org-entry-properties))
+         (tags (cdr (assoc "ALLTAGS" props))))
+    (if (string-match ":\\(@[^:]*\\):" tags)
+        (match-string-no-properties 1 tags))))
+
+(defun alb-org-agenda-prefix-schedule ()
+  "Construct a prefix for an agenda from the SCHEDULED value
+
+This function customises Org-Mode."
+  (let* ((props (org-entry-properties))
+         (scheduled (cdr (assoc "SCHEDULED" props))))
+    (if (stringp scheduled)
+        scheduled
+      "")))
+
+(defun alb-org-agenda-prefix-timestamp ()
+  "Construct a prefix for an agenda from the last timestamp
+
+This function customises Org-Mode."
+  (let* ((props (org-entry-properties))
+         (timestamp (cdr (assoc "TIMESTAMP_IA" props))))
+    (if (stringp timestamp)
+        timestamp
+      "")))
+
+(defun alb-org-agenda-prefix-catalog ()
+  "Construct a prefix for each entry in the catalog of areas of focus
+
+This function customises Org-Mode."
+  (let ((level (org-current-level)))
+    (cond ((= level 1)
+           "\n\n")
+          ((= level 2)
+           "\n")
+          ((= level 3)
+           "[ ] "))))
+
+;;
+;; Outline visibility
+;;
+
+(defun alb-org-widen ()
+  "Widen to the whole buffer and centre the headline"
+  (interactive)
+  (widen)
+  (recenter))
+
+;;
 ;; Outline navigation
 ;;
 
@@ -1281,10 +1540,6 @@ enclosing list.  This function customises Org-Mode."
     (if next-pos
       (goto-char next-pos))))
 
-;;
-;; Heading navigation
-;;
-
 (defun alb-org-up-heading ()
   "Move to the parent heading
 
@@ -1318,265 +1573,6 @@ function customises Org-Mode."
         (goto-char next-pos))))
 
 ;;
-;; Column view customization
-;;
-
-(defun alb-org-columns-modify-value-for-display-function (column-title value)
-  "Modify values for display in column view
-
-The mappings are designed to make schedules, effort estimates,
-and elapsed time easier to follow in column view.
-
-- when COLUMN-TITLE is =Task= remove tags from =ITEM= value; and
-- when COLUMN-TITLE is =Project= remove tags from =ITEM= value."
-  (cond ((string= column-title "Project")
-         (if (string-match alb-re-org-heading value)
-             (concat (match-string 1 value) " " (match-string 4 value))))
-        ((string= column-title "Task")
-         (if (string-match alb-re-org-heading value)
-             (concat (match-string 1 value) " " (match-string 4 value))))
-        ((string= column-title "X")
-         (cond ((string= value "DUTY") "u")
-               ((string= value "TODO") "t")
-               ((string= value "WAIT") "w")
-               ((string= value "HOLD") "h")
-               ((string= value "STOP") "S")
-               ((string= value "DONE") "D")))))
-
-;;
-;; Agenda customization
-;;
-
-(defun alb-org-agenda-cmp-first (a b)
-  "Compare a pair of formatted agenda entries after splitting off the first word
-
-Split the formatted agenda items `a` and `b` and compare the
-first word from each.  This function customises Org-Mode."
-  (let ((a-first (nth 0 (split-string a)))
-        (b-first (nth 0 (split-string b))))
-      (cond ((string< a-first b-first)
-          -1)
-         ((string< b-first a-first)
-          1))))
-
-(defun alb-org-agenda-prefix-activity ()
-  "Construct a prefix for an agenda from the activity tag
-
-This function customises Org-Mode."
-  (let* ((props (org-entry-properties))
-         (tags (cdr (assoc "ALLTAGS" props))))
-    (if (string-match ":\\(act_[^:]*\\):" tags)
-        (match-string-no-properties 1 tags))))
-
-(defun alb-org-agenda-prefix-context ()
-  "Construct a prefix for an agenda from the context tag
-
-This function customises Org-Mode."
-  (let* ((props (org-entry-properties))
-         (tags (cdr (assoc "ALLTAGS" props))))
-    (if (string-match ":\\(@[^:]*\\):" tags)
-        (match-string-no-properties 1 tags))))
-
-(defun alb-org-agenda-prefix-schedule ()
-  "Construct a prefix for an agenda from the SCHEDULED value
-
-This function customises Org-Mode."
-  (let* ((props (org-entry-properties))
-         (scheduled (cdr (assoc "SCHEDULED" props))))
-    (if (stringp scheduled)
-        scheduled
-      "")))
-
-(defun alb-org-agenda-prefix-timestamp ()
-  "Construct a prefix for an agenda from the last timestamp
-
-This function customises Org-Mode."
-  (let* ((props (org-entry-properties))
-         (timestamp (cdr (assoc "TIMESTAMP_IA" props))))
-    (if (stringp timestamp)
-        timestamp
-      "")))
-
-(defun alb-org-agenda-prefix-catalog ()
-  "Construct a prefix for each entry in the catalog of areas of focus
-
-This function customises Org-Mode."
-  (let ((level (org-current-level)))
-    (cond ((= level 1)
-           "\n\n")
-          ((= level 2)
-           "\n")
-          ((= level 3)
-           "[ ] "))))
-
-;;
-;; Capture customization
-;;
-
-(defun alb-org-locate-incoming ()
-  "Place point at tree containing incoming tasks
-
-This function customises Org-Mode."
-  (goto-char (point-min))
-  (if (re-search-forward alb-re-org-heading-incoming nil t)
-      (goto-char (match-beginning 0))
-    (outline-next-heading)))
-
-(defun alb-org-locate-heading ()
-  "Place point at enclosing heading, or top heading in the file
-
-This function customises Org-Mode."
-  (if (org-before-first-heading-p)
-      (outline-next-heading)
-    (outline-back-to-heading t)))
-
-(defun alb-org-locate-focus-sentinel ()
-  "Place point at focus sentinel
-
-Insert area of focus heading at start of list of areas of focus.
-Therefore, places point at first tree after the incoming tree.
-This function customises Org-Mode."
-  (alb-org-locate-incoming)
-  (outline-forward-same-level 1))
-
-(defun alb-org-locate-duty-sentinel ()
-  "Place point at DUTY sentinel
-
-Insert TODO heading in ``DUTY`` before first ``DUTY`` at start of
-enclosing area of focus heading, or in the incoming tasks tree.
-Therefore, places point at first child heading of the enclosing
-level 2 heading.  This function customises Org-Mode."
-  (alb-org-locate-heading)
-  (while (< 2 (org-current-level))
-    (outline-up-heading 1 t))
-  (if (not (= 2 (org-current-level)))
-      (alb-org-locate-incoming))
-  (outline-next-heading))
-
-(defun alb-org-locate-hold-sentinel ()
-  "Place point at TODO sentinel
-
-Insert TODO heading in ``TODO`` before first ``HOLD`` state
-heading in enclosing area of focus heading, or in the incoming
-tasks tree.  Therefore, places point at first child heading of
-the enclosing level 2 heading that is not in the ``DUTY`` state.
-This function customises Org-Mode."
-  (alb-org-locate-heading)
-  (while (< 2 (org-current-level))
-    (outline-up-heading 1 t))
-  (if (not (= 2 (org-current-level)))
-      (alb-org-locate-incoming))
-  (outline-next-heading)
-  (while (and (= 3 (org-current-level))
-              (member (cdr (assoc "TODO" (org-entry-properties)))
-                      '("DUTY")))
-    (outline-forward-same-level 1)))
-
-(defun alb-org-locate-todo-sentinel ()
-  "Place point at TODO sentinel
-
-Insert TODO heading in ``TODO`` before first ``TODO`` state
-heading in enclosing area of focus heading, or in the incoming
-tasks tree.  Therefore, places point at first child heading of
-the enclosing level 2 heading that is in neither a ``DUTY`` or
-``HOLD`` state.  This function customises Org-Mode."
-  (alb-org-locate-heading)
-  (while (< 2 (org-current-level))
-    (outline-up-heading 1 t))
-  (if (not (= 2 (org-current-level)))
-      (alb-org-locate-incoming))
-  (outline-next-heading)
-  (while (and (= 3 (org-current-level))
-              (member (cdr (assoc "TODO" (org-entry-properties)))
-                      '("DUTY" "HOLD")))
-    (outline-forward-same-level 1)))
-
-(defun alb-org-locate-link-sentinel ()
-  "Place point at link sentinel
-
-XXX Insert link at start of enclosing TODO heading or area of
-focus heading, or in the incoming tasks tree.  This function
-customises Org-Mode."
-  (alb-org-locate-heading)
-  (while (< 3 (org-current-level))
-    (outline-up-heading 1 t))
-  (org-show-entry)
-  (alb-org-down-structure))
-
-;;
-;; Heading sorting
-;;
-
-(defun alb-org-sort-rank (properties)
-  "Return the rank of a todo item from its PROPERTIES
-
-The rank defines the first step in an approximated reverse
-chronological order.  The rank gives the todo state an
-interpretation in this order.  All =DUTY= items are newer than
-all =HOLD= items, which are newer than all =TODO= and =WAIT=
-items, which are newer than all =DONE= and =STOP= items.  This
-function customises Org-Mode."
-  (let ((todo (cdr (assoc "TODO" properties))))
-    (cond ((not todo)
-           0)
-          ((string= todo "DUTY")
-           1)
-          ((string= todo "HOLD")
-           2)
-          ((or (string= todo "TODO") (string= todo "WAIT"))
-           3)
-          ((or (string= todo "DONE") (string= todo "STOP"))
-           4))))
-
-(defun alb-org-sort-timestamp (properties)
-  "Return the time stamp of a todo item from its PROPERTIES
-
-The timestamp defines the second step in an approximated reverse
-chronological order.  =HOLD= items are timestamped by scheduled
-time.  =DUTY=, =TODO=, =WAIT=, =STOP=, and =DONE= items are
-timestamped from the first keyword-less inactive timestamp in the
-entry.  In practice, this is the timestamp of the last TODO state
-transition.  All other items are set to epoch.  This function
-customises Org-Mode."
-  (let ((todo (cdr (assoc "TODO" properties))))
-    (cond ((and (assoc "SCHEDULED" properties)
-                (string= todo "HOLD"))
-           (date-to-time (cdr (assoc "SCHEDULED" properties))))
-          ((and (assoc "TIMESTAMP_IA" properties)
-                (or (string= todo "DUTY") (string= todo "TODO")
-                    (string= todo "WAIT") (string= todo "STOP")
-                    (string= todo "DONE")))
-           (date-to-time (cdr (assoc "TIMESTAMP_IA" properties))))
-          (t
-           '(0 0)))))
-
-(defun alb-org-sort-string ()
-  "Generate a string for sorting the entry at point
-
-Returns a string that can be sorted alphabetically to retrieve
-the lexical order over the rank of the todo state as defined by
-`alb-org-sort-rank`, the reverse of the time of the todo item as
-defined by `alb-org-sort-timestamp`, and the heading of the
-entry.  This function customises Org-Mode."
-  (let* ((properties (org-entry-properties))
-         (rank (alb-org-sort-rank properties))
-         (timestamp (alb-org-sort-timestamp properties))
-         (sec-hi (- #xffff (car timestamp)))
-         (sec-lo (- #xffff (cadr timestamp)))
-         (title (nth 4 (org-heading-components))))
-    (concat (format "%1d#%4x-%4x#%s" rank sec-hi sec-lo title))))
-
-;;
-;; Widen
-;;
-
-(defun alb-org-widen ()
-  "Widen to the whole buffer and centre the headline"
-  (interactive)
-  (widen)
-  (recenter))
-
-;;
 ;; Outline structure editing
 ;;
 
@@ -1603,37 +1599,6 @@ entry.  This function customises Org-Mode."
     (org-end-of-subtree)
     (newline 2)
     (insert stars)))
-
-;;
-;; Content editing
-;;
-
-(defun alb-org-newline-before ()
-  "Insert a newline before the current line"
-  (interactive)
-  (save-excursion (beginning-of-line)
-                  (newline)))
-
-(defun alb-org-newline-after ()
-  "Insert a newline after the current line"
-  (interactive)
-  (save-excursion (beginning-of-line 2)
-                  (newline)))
-
-(defun alb-org-insert-item ()
-  "Insert a list item."
-  (interactive)
-  (org-insert-item nil))
-
-(defun alb-org-insert-checkbox ()
-  "Insert a check boxed list item."
-  (interactive)
-  (org-insert-item t))
-
-(defun alb-org-toggle-checkbox (&optional toggle-presence)
-  "Toggle a check boxed list item."
-  (interactive "P")
-  (org-toggle-checkbox toggle-presence))
 
 ;;
 ;; Meta-data editing
@@ -1720,6 +1685,37 @@ update, removes it. Repairs the positions of the tags."
   "Visit the project README file"
   (interactive)
   (find-file (concat (alb-org-project-dirname) "/README.rst")))
+
+;;
+;; Content editing
+;;
+
+(defun alb-org-newline-before ()
+  "Insert a newline before the current line"
+  (interactive)
+  (save-excursion (beginning-of-line)
+                  (newline)))
+
+(defun alb-org-newline-after ()
+  "Insert a newline after the current line"
+  (interactive)
+  (save-excursion (beginning-of-line 2)
+                  (newline)))
+
+(defun alb-org-insert-item ()
+  "Insert a list item."
+  (interactive)
+  (org-insert-item nil))
+
+(defun alb-org-insert-checkbox ()
+  "Insert a check boxed list item."
+  (interactive)
+  (org-insert-item t))
+
+(defun alb-org-toggle-checkbox (&optional toggle-presence)
+  "Toggle a check boxed list item."
+  (interactive "P")
+  (org-toggle-checkbox toggle-presence))
 
 ;; Local Variables:
 ;; mode: emacs-lisp
