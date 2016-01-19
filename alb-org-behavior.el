@@ -377,11 +377,15 @@ Org-Mode by realising the following principles.
 
  ;; Outline structure editing
  (define-key org-mode-map (kbd "C-c .") 'outline-mark-subtree)
- (define-key org-mode-map (kbd "C-c a") 'org-archive-subtree-default)
+ (define-key org-mode-map (kbd "C-c B") 'org-move-subtree-up)
+ (define-key org-mode-map (kbd "C-c F") 'org-move-subtree-down)
+ (define-key org-mode-map (kbd "C-c U") 'alb-org-promote-subtree)
+ (define-key org-mode-map (kbd "C-c D") 'alb-org-demote-subtree)
  (define-key org-mode-map (kbd "C-c i") 'alb-org-insert-heading-before)
  (define-key org-mode-map (kbd "C-c j") 'alb-org-insert-heading-after)
  (define-key org-mode-map (kbd "C-c c") 'org-capture)
  (define-key org-mode-map (kbd "C-c w") 'org-refile)
+ (define-key org-mode-map (kbd "C-c a") 'org-archive-subtree-default)
 
  ;; Clock commands
  (define-key org-mode-map (kbd "C-c I") 'org-clock-in)
@@ -393,9 +397,12 @@ Org-Mode by realising the following principles.
  (define-key org-mode-map (kbd "C-c :") 'org-set-tags-command)
  (define-key org-mode-map (kbd "C-c S") 'org-schedule)
  (define-key org-mode-map (kbd "C-c E") 'org-set-effort)
+ (define-key org-mode-map (kbd "C-c L") 'org-store-link)
  (define-key org-mode-map (kbd "C-c #") 'org-update-statistics-cookies)
 
  ;; Project filing
+ (define-key org-mode-map (kbd "C-c ~") 'alb-org-project-files)
+ (define-key org-mode-map (kbd "C-c R") 'alb-org-project-readme)
 
  ;; Agenda views
  (define-key org-mode-map (kbd "C-c v") 'org-agenda)
@@ -452,8 +459,8 @@ Org-Mode by realising the following principles.
          ("." . outline-mark-subtree)
          ("B" . org-move-subtree-up)
          ("F" . org-move-subtree-down)
-         ("U" . (progn (org-promote) (outline-back-to-heading)))
-         ("D" . (progn (org-demote) (outline-back-to-heading)))
+         ("U" . alb-org-promote-subtree)
+         ("D" . alb-org-demote-subtree)
          ("i" . alb-org-insert-heading-before)
          ("j" . alb-org-insert-heading-after)
          ("c" . org-capture)
@@ -468,8 +475,8 @@ Org-Mode by realising the following principles.
          (":" . org-set-tags-command)
          ("S" . org-schedule)
          ("E" . org-set-effort)
-         ("#" . alb-org-update-headline-statistics)
          ("L" . org-store-link)
+         ("#" . alb-org-update-headline-statistics)
          ("Project filing")
          ("~" . alb-org-project-files)
          ("R" . alb-org-project-readme)
@@ -1611,6 +1618,18 @@ enclosing list.  This function customises Org-Mode."
 ;;
 ;; Outline structure editing
 ;;
+
+(defun alb-org-promote-subtree ()
+  "Promote the current subtree"
+  (interactive)
+  (org-promote-subtree)
+  (outline-back-to-heading))
+
+(defun alb-org-demote-subtree ()
+  "Demote the current subtree"
+  (interactive)
+  (org-demote-subtree)
+  (outline-back-to-heading))
 
 (defun alb-org-insert-heading-before ()
   "Move to the containing heading and insert a matching heading"
