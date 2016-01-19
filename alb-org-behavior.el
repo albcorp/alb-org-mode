@@ -575,7 +575,7 @@ Add `alb-org-whitespace-cleanup` to the buffer local
   (add-hook 'write-contents-functions 'alb-org-whitespace-cleanup))
 
 ;;
-;; Structure navigation
+;; Outline navigation
 ;;
 
 (defun alb-org-entry-structure-visit (past-pos)
@@ -1577,7 +1577,7 @@ entry.  This function customises Org-Mode."
   (recenter))
 
 ;;
-;; Structure editing
+;; Outline structure editing
 ;;
 
 (defun alb-org-insert-heading-before ()
