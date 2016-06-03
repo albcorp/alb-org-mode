@@ -161,9 +161,9 @@ subexpressions.")
   "String separating different words in the abbreviated string")
 
 (defcustom alb-org-project-dirname-patterns
-  '(("^Work on =\\([A-Z]+-[0-9]+\\)=: \\*\\([^*]+\\)\\*\\s-:foc_\\([^:]*\\):*.*$"
+  '(("^Work on =\\([A-Z]+-[0-9]+\\)=: \\*\\([^*]+\\)\\*\\s-:foc_\\([^:]*\\):.*$"
      . "~/Desktop/10-Files/\\3/\\1")
-    ("^Work on =\\([a-z_-]+\\)= issue \\([0-9]+\\)\\: \\*\\([^*]+\\)\\*\\s-:foc_\\([^:]*\\):*.*$"
+    ("^Work on =\\([a-z._-]+\\)= issue \\([0-9]+\\): \\*\\([^*]+\\)\\*\\s-:foc_\\([^:]*\\):.*$"
      . "~/Desktop/10-Files/\\4/\\1/\\2")
     ("^\\(.*\\)\\s-+:foc_\\([^:]*\\):.*$"
      . "~/Desktop/10-Files/\\2/<<\\1>>")
