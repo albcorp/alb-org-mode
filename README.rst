@@ -1,17 +1,17 @@
-=================
-README.AlbOrgMode
-=================
+===========================
+README for ``alb-org-mode``
+===========================
 
 :Precis: Emacs lisp to configure Org-Mode for albcorp
 :Authors: Andrew Lincoln Burrow
 :Contact: albcorp@gmail.com
-:Copyright: 2010-2012, 2015-2016 Andrew Lincoln Burrow
+:Copyright: 2010-2012, 2015-2017 Andrew Lincoln Burrow
 
 ------------
 Introduction
 ------------
 
-*AlbOrgMode* is a collection of emacs lisp to configure Org-Mode for
+*alb-org-mode* is a collection of emacs lisp to configure Org-Mode for
 albcorp.  It contains examples of emacs lisp functions to customise
 Org-Mode, and a complete customisation of Org-Mode for keybindings.  In
 particular, it provides an implementation of Getting Things Done (GTD_).
@@ -60,18 +60,18 @@ The remainder of this README is organised as follows:
 Installation
 ------------
 
-To install *AlbOrgMode* simply place the contents of the repository in a
-convenient location.  The source code is installed once Emacs can locate
-the emacs lisp files.  These cases are covered in the subsection on
-minimal installation.  Installation makes the functions provided in this
-repository available to your own Org-Mode configuration, but does not
-alter your Org-Mode configuration.  Further configuration is suggested
-in the subsection on additional configuration.
+To install *alb-org-mode* simply place the contents of the repository in
+a convenient location.  The source code is installed once Emacs can
+locate the emacs lisp files.  These cases are covered in the subsection
+on minimal installation.  Installation makes the functions provided in
+this repository available to your own Org-Mode configuration, but does
+not alter your Org-Mode configuration.  Further configuration is
+suggested in the subsection on additional configuration.
 
 Minimal installation
 ====================
 
-To install *AlbOrgMode* simply place the contents of the repository in a
+To install *alb-org-mode* simply place the contents of the repository in a
 convenient location.  The source code is installed once Emacs can locate
 the emacs lisp files.  The repository contains helper scripts to achieve
 these ends.
@@ -100,11 +100,11 @@ these ends.
 Configuration
 =============
 
-The minimal installation of *AlbOrgMode* does not impose any new
+The minimal installation of *alb-org-mode* does not impose any new
 configuration on Org-Mode.  This section briefly describes how to
-configure Org-Mode to make use of the features in *AlbOrgMode*.
+configure Org-Mode to make use of the features in *alb-org-mode*.
 
-Load the *AlbOrgMode* key bindings by adding the following fragment to
+Load the *alb-org-mode* key bindings by adding the following fragment to
 ``~/.emacs``
 
 ::
